@@ -5,116 +5,242 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flight Search – Flight IQ</title>
 
-    <!-- your *own* stylesheet (nothing else) -->
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/home.css') }}">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 </head>
 <body>
 
 <!-- ░░░ NAVBAR (matches home.css) ░░░ -->
-<div class="navbar">
-    <a href="/">
-        <img src="{{ url_for('static', filename='images/Logo.png') }}"
-             alt="Flight IQ Logo">
-    </a>
+<nav class="navbar">
+    <div class="container">
+        <a href="/" class="navbar-brand">
+            <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Flight IQ Logo">
+            Flight IQ
+        </a>
 
-    <div class="links">
-        <a href="/login">Log-in</a>
-        <a href="/signup">Sign-up</a>
+        <div class="links">
+            <a href="/login">Log-in</a>
+            <a href="/signup">Sign-up</a>
+        </div>
     </div>
-</div>
+</nav>
 
 <!-- ░░░ PAGE CONTENT ░░░ -->
 <div class="container">
 
-    <!-- title -->
-    <div class="title">
+    <!-- Hero section -->
+    <section class="home-hero">
         <h1>Flight IQ</h1>
         <p class="subtitle">Where your next adventure starts</p>
-    </div>
+        <a href="#search" class="home-hero-cta">Find Your Flight</a>
+    </section>
 
     <!-- search box (uses .search-box rules in home.css) -->
-    <div class="search-box">
-        <form method="POST">
+    <section id="search" class="py-4">
+        <div class="search-box">
+            <h2 class="search-box-title">Search Flights</h2>
+            <form method="POST">
+                <!-- departure dropdown -->
+                <div class="mb-3">
+                    <label for="source_city" class="form-label">Departure</label>
+                    <select id="source_city" name="source_city" class="form-select">
+                        <option value="">Any</option>
+                        {% for label in airport_labels %}
+                            <option value="{{ label }}" 
+                                    {% if label.startswith(form_values.src) or label.endswith(form_values.src) %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <!-- departure dropdown -->
-            <label for="source_city">Departure</label>
-            <select id="source_city" name="source_city">
-                <option value="">Any</option>
-                {% for label in airport_labels %}
-                    <option value="{{ label }}"
-                            {% if label.startswith(form_values.src) or
-                                  label.endswith(form_values.src) %}selected{% endif %}>
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
+                <!-- destination dropdown -->
+                <div class="mb-3">
+                    <label for="destination_city" class="form-label">Destination</label>
+                    <select id="destination_city" name="destination_city" class="form-select">
+                        <option value="">Any</option>
+                        {% for label in airport_labels %}
+                            <option value="{{ label }}"
+                                    {% if label.startswith(form_values.dest) or label.endswith(form_values.dest) %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-            <!-- destination dropdown -->
-            <label for="destination_city">Destination</label>
-            <select id="destination_city" name="destination_city">
-                <option value="">Any</option>
-                {% for label in airport_labels %}
-                    <option value="{{ label }}"
-                            {% if label.startswith(form_values.dest) or
-                                  label.endswith(form_values.dest) %}selected{% endif %}>
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
+                <!-- earliest date -->
+                <div class="mb-3">
+                    <label for="date" class="form-label">Earliest departure date</label>
+                    <input type="date" id="date" name="date" class="form-control" value="{{ form_values.date }}">
+                </div>
 
-            <!-- earliest date -->
-            <label for="date">Earliest departure date</label>
-            <input type="date"
-                   id="date"
-                   name="date"
-                   value="{{ form_values.date }}">
-
-            <button type="submit">Search</button>
-        </form>
-    </div>
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search me-2"></i>Search
+                </button>
+            </form>
+        </div>
+    </section>
 
     <!-- results -->
     {% if flights %}
-        <h2>Upcoming flights</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Flight #</th>
-                    <th>Airline</th>
-                    <th>Departure</th>
-                    <th>Destination</th>
-                    <th>Dep&nbsp;date</th>
-                    <th>Dep&nbsp;time</th>
-                    <th>Arr&nbsp;date</th>
-                    <th>Arr&nbsp;time</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for f in flights %}
-                <tr>
-                    <td>{{ f.Flight_ID }}</td>
-                    <td>{{ f.Airline }}</td>
-                    <td>{{ f.Departure_Airport }} ({{ f.Departure_City }})</td>
-                    <td>{{ f.Arrival_Airport }} ({{ f.Arrival_City }})</td>
-                    <td>{{ f.Departure_Date }}</td>
-                    <td>{{ f.Departure_Time }}</td>
-                    <td>{{ f.Arrival_Date }}</td>
-                    <td>{{ f.Arrival_Time }}</td>
-                    <td>{{ f.Status_ }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
+        <section class="flights-results">
+            <h2 class="flights-results-title">Upcoming flights</h2>
+            <div class="table-responsive">
+                <table class="flights-table">
+                    <thead>
+                        <tr>
+                            <th>Flight #</th>
+                            <th>Airline</th>
+                            <th>Departure</th>
+                            <th>Destination</th>
+                            <th>Dep&nbsp;date</th>
+                            <th>Dep&nbsp;time</th>
+                            <th>Arr&nbsp;date</th>
+                            <th>Arr&nbsp;time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in flights %}
+                        <tr>
+                            <td data-label="Flight #">{{ f.Flight_ID }}</td>
+                            <td data-label="Airline">{{ f.Airline }}</td>
+                            <td data-label="Departure">{{ f.Departure_Airport }} ({{ f.Departure_City }})</td>
+                            <td data-label="Destination">{{ f.Arrival_Airport }} ({{ f.Arrival_City }})</td>
+                            <td data-label="Dep date">{{ f.Departure_Date }}</td>
+                            <td data-label="Dep time">{{ f.Departure_Time }}</td>
+                            <td data-label="Arr date">{{ f.Arrival_Date }}</td>
+                            <td data-label="Arr time">{{ f.Arrival_Time }}</td>
+                            <td data-label="Status">
+                                <span class="flight-status 
+                                    {% if f.Status_ == 'On-time' %}on-time{% elif f.Status_ == 'Delayed' %}delayed{% elif f.Status_ == 'Cancelled' %}cancelled{% endif %}">
+                                    {{ f.Status_ }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
     {% elif request.method == 'POST' %}
-        <p>No flights match your criteria.</p>
-
-    {% else %}
-        <p>No upcoming flights available.</p>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No flights match your criteria.
+        </div>
     {% endif %}
 
+    <!-- Features Section -->
+    <section id="features" class="home-features">
+        <h2 class="home-features-title">Why Choose Flight IQ</h2>
+        <div class="row">
+            <!-- Feature 1 -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-plane"></i>
+                    </div>
+                    <h3 class="feature-title">Extensive Flight Options</h3>
+                    <p class="feature-description">Access a vast network of airlines and routes to find the perfect flight for your journey.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 2 -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h3 class="feature-title">Best Price Guarantee</h3>
+                    <p class="feature-description">Our smart pricing algorithm ensures you always get the best deals and lowest fares.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 3 -->
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">Track Your Spending</h3>
+                    <p class="feature-description">Visualize your travel expenses with detailed analytics and spending reports.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <!-- Company Info -->
+            <div class="col-md-4 mb-4 mb-md-0">
+                <h5 class="mb-3">Flight IQ</h5>
+                <p class="mb-0">Where your next adventure starts. Booking smarter, flying better.</p>
+                <div class="mt-3">
+                    <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white me-2"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="col-md-4 mb-4 mb-md-0">
+                <h5 class="mb-3">Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/" class="text-white text-decoration-none">Home</a></li>
+                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">About Us</a></li>
+                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">Contact</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">Terms & Conditions</a></li>
+                </ul>
+            </div>
+            
+            <!-- Contact -->
+            <div class="col-md-4">
+                <h5 class="mb-3">Contact Us</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> 123 Airport Ave, New York, NY</li>
+                    <li class="mb-2"><i class="fas fa-phone me-2"></i> (123) 456-7890</li>
+                    <li><i class="fas fa-envelope me-2"></i> info@flightiq.com</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div class="border-top border-secondary pt-3 mt-3 text-center">
+            <p class="mb-0">&copy; 2025 Flight IQ. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap JS for components -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Smooth scrolling for anchor links -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const target = document.querySelector(targetId);
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

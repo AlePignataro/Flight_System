@@ -58,6 +58,11 @@ def main() -> None:
         except (TypeError, ValueError):
             raise BadRequest("Invalid date format")
 
+    @app.context_processor
+    def inject_current_year():
+        """Add current_year to all template contexts."""
+        from datetime import datetime
+        return {'current_year': datetime.now().year}
 
     # ------------------------- template safety ------------------
     @app.context_processor

@@ -1,127 +1,241 @@
-/* General styles for the body */
-body {
-    font-family: Arial, sans-serif; /* Sets the font of the entire body to Arial or sans-serif */
-    background-color: #f4f4f9; /* Sets a light gray background color for the page */
-    margin: 0; /* Removes default margin around the body */
-    padding: 0; /* Removes default padding around the body */
+/* ======== Login & Signup Page Styles ======== */
+
+/* Hero Section */
+.auth-hero {
+text-align: center;
+margin-bottom: 2rem;
 }
 
-/* Navbar styles */
-.navbar {
-    background-color: #007bff; /* Sets the background color of the navbar to blue */
-    padding: 15px; /* Adds 15px padding inside the navbar */
-    display: flex; /* Makes the navbar a flex container for easy alignment */
-    justify-content: space-between; /* Aligns items to the left and right edges of the navbar */
-    align-items: center; /* Vertically centers items within the navbar */
+.auth-hero h1 {
+font-size: 3rem;
+font-weight: 700;
+margin-bottom: 0.5rem;
+color: var(--primary);
 }
 
-.navbar img {
-    height: 40px; /* Sets the height of the navbar logo image to 40px */
+.auth-hero p {
+font-size: 1.25rem;
+color: var(--secondary);
+margin-bottom: 0;
 }
 
-.navbar a {
-    color: white; /* Sets the text color of navbar links to white */
-    text-decoration: none; /* Removes the underline from navbar links */
-    font-size: 1.1em; /* Sets the font size of navbar links to 1.1 times the normal size */
-    margin-left: 20px; /* Adds 20px space to the left of each navbar link */
+/* Auth Card */
+.auth-card {
+background-color: var(--white);
+border-radius: var(--border-radius-lg);
+box-shadow: var(--shadow);
+padding: 2.5rem;
+width: 100%;
+max-width: 430px;
+margin: 0 auto;
+transition: var(--transition-base);
 }
 
-.navbar a:hover {
-    text-decoration: underline; /* Underlines navbar links when hovered */
+.auth-card:hover {
+box-shadow: var(--shadow-lg);
 }
 
-/* Container for all pages */
-.container {
-    width: 80%; /* Sets the width of the container to 80% of the page width */
-    margin: 0 auto; /* Centers the container horizontally */
-    padding: 20px; /* Adds 20px padding inside the container */
+.auth-card h2 {
+text-align: center;
+margin-bottom: 1.5rem;
+color: var(--primary);
+font-weight: 600;
 }
 
-/* Title and subtitle styles */
-.title {
-    text-align: center; /* Centers the text of the title */
-    margin-bottom: 20px; /* Adds 20px margin below the title */
+/* Form Groups */
+.auth-form-group {
+margin-bottom: 1.5rem;
 }
 
-.title h1 {
-    font-size: 3em; /* Sets the font size of the main title to 3 times the normal size */
-    color: #333; /* Sets the color of the title text to dark gray */
+.auth-form-group label {
+display: block;
+margin-bottom: 0.5rem;
+font-weight: 500;
+color: var(--dark);
 }
 
-.title p {
-    font-size: 1.2em; /* Sets the font size of the subtitle to 1.2 times the normal size */
-    color: #555; /* Sets the color of the subtitle text to light gray */
+.auth-form-group input,
+.auth-form-group select {
+width: 100%;
+padding: 0.75rem 1rem;
+font-size: 1rem;
+border: 1px solid #dee2e6;
+border-radius: var(--border-radius);
+background-color: var(--white);
+transition: var(--transition-base);
 }
 
-/* Login Box */
-.login-box {
-    background-color: white; /* Sets the background color of the login box to white */
-    padding: 30px; /* Adds 30px padding inside the login box */
-    border-radius: 8px; /* Rounds the corners of the login box */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow around the login box */
-    width: 350px; /* Sets the width of the login box to 350px */
-    margin: 100px auto; /* Centers the login box vertically with 100px margin from the top */
-    display: flex; /* Makes the login box a flex container */
-    flex-direction: column; /* Arranges the child elements in a column */
-    align-items: center; /* Centers the child elements horizontally */
+.auth-form-group input:focus,
+.auth-form-group select:focus {
+border-color: var(--primary-light);
+box-shadow: 0 0 0 0.25rem rgba(26, 58, 110, 0.25);
+outline: none;
 }
 
-h2 {
-    text-align: center; /* Centers the heading inside the login box */
-    color: #333; /* Sets the color of the heading text to dark gray */
+/* Auth Button */
+.auth-btn {
+width: 100%;
+padding: 0.75rem;
+font-size: 1rem;
+font-weight: 600;
+color: var(--white);
+background-color: var(--primary);
+border: none;
+border-radius: var(--border-radius);
+cursor: pointer;
+transition: var(--transition-base);
+margin-top: 0.5rem;
 }
 
-/* Input groups */
-.input-group {
-    margin-bottom: 20px; /* Adds 20px space below each input group */
+.auth-btn:hover {
+background-color: var(--primary-dark);
 }
 
-.input-group label {
-    display: block; /* Makes the label a block-level element */
-    color: #333; /* Sets the color of the label text to dark gray */
-    margin-bottom: 5px; /* Adds 5px space below the label */
+/* Alternate Action Link */
+.auth-alt-action {
+text-align: center;
+margin-top: 1.5rem;
 }
 
-.input-group input,
-.input-group select {
-    width: 100%; /* Makes the input fields and select dropdowns take the full width */
-    padding: 12px; /* Adds 12px padding inside the input fields */
-    font-size: 16px; /* Sets the font size inside the input fields to 16px */
-    border: 1px solid #ccc; /* Adds a light gray border around the input fields */
-    border-radius: 5px; /* Rounds the corners of the input fields */
-    box-sizing: border-box; /* Ensures padding is included in the width calculation */
+.auth-alt-action p {
+margin-bottom: 0;
+color: var(--dark);
 }
 
-/* Buttons */
-.btn {
-    width: 100%; /* Makes the button take the full width of the container */
-    padding: 12px; /* Adds 12px padding inside the button */
-    font-size: 16px; /* Sets the font size of the button text to 16px */
-    background-color: #007bff; /* Sets the background color of the button to blue */
-    color: white; /* Sets the text color of the button to white */
-    border: none; /* Removes the border around the button */
-    border-radius: 5px; /* Rounds the corners of the button */
-    cursor: pointer; /* Changes the cursor to a pointer when hovering over the button */
+.auth-alt-action a {
+color: var(--primary);
+font-weight: 500;
+text-decoration: none;
+transition: var(--transition-base);
 }
 
-.btn:hover {
-    background-color: #0056b3; /* Changes the button's background color to dark blue when hovered */
+.auth-alt-action a:hover {
+color: var(--primary-dark);
+text-decoration: underline;
 }
 
-/* Error message */
-.error-message {
-    color: red; /* Sets the color of the error message text to red */
-    text-align: center; /* Centers the error message text */
-    margin-top: 10px; /* Adds 10px space above the error message */
+/* Role Selector */
+.role-selector {
+margin-bottom: 1.5rem;
 }
 
-/* Register link styles */
-.register-link {
-    text-align: center; /* Centers the "Don't have an account?" text */
-    margin-top: 15px; /* Adds 15px space above the register link */
+.role-selector-label {
+display: block;
+margin-bottom: 0.5rem;
+font-weight: 500;
 }
 
-.register-link a {
-    text-decoration: none; /* Removes the underline from the register link */
-    color: #007bff; /* Sets the color of the register link to blue */
+.role-selector-options {
+display: flex;
+gap: 1rem;
+}
+
+.role-option {
+flex: 1;
+text-align: center;
+}
+
+.role-option input[type="radio"] {
+display: none;
+}
+
+.role-option label {
+display: block;
+padding: 1rem;
+border-radius: var(--border-radius);
+border: 1px solid #dee2e6;
+cursor: pointer;
+transition: var(--transition-base);
+}
+
+.role-option input[type="radio"]:checked + label {
+background-color: var(--primary);
+color: var(--white);
+border-color: var(--primary);
+}
+
+.role-option label:hover {
+background-color: rgba(26, 58, 110, 0.1);
+}
+
+.role-option input[type="radio"]:checked + label:hover {
+background-color: var(--primary-dark);
+}
+
+/* Social Login Buttons */
+.social-login {
+margin-bottom: 1.5rem;
+}
+
+.social-login-title {
+text-align: center;
+margin-bottom: 1rem;
+font-weight: 500;
+position: relative;
+}
+
+.social-login-title::before,
+.social-login-title::after {
+content: "";
+position: absolute;
+top: 50%;
+width: 30%;
+height: 1px;
+background-color: #dee2e6;
+}
+
+.social-login-title::before {
+left: 0;
+}
+
+.social-login-title::after {
+right: 0;
+}
+
+.social-login-buttons {
+display: flex;
+gap: 1rem;
+}
+
+.social-btn {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 0.75rem;
+border-radius: var(--border-radius);
+border: 1px solid #dee2e6;
+background-color: var(--white);
+color: var(--dark);
+text-decoration: none;
+transition: var(--transition-base);
+}
+
+.social-btn:hover {
+background-color: #f8f9fa;
+}
+
+.social-btn i {
+margin-right: 0.5rem;
+}
+
+/* Error Message */
+.auth-error {
+padding: 0.75rem;
+margin-bottom: 1.5rem;
+border-radius: var(--border-radius);
+background-color: #f8d7da;
+color: #842029;
+border: 1px solid #f5c2c7;
+}
+
+/* Responsive styles */
+@media (max-width: 576px) {
+.auth-card {
+    padding: 1.5rem;
+}
+
+.auth-hero h1 {
+    font-size: 2.5rem;
+}
 }

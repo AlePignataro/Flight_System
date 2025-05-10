@@ -3,96 +3,236 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}Flight IQ{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet">
-
-  <!-- Global styles -->
+  <title>{% block title %}Flight IQ{% endblock %}</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Bootstrap CSS - Only used for grid system and basic components -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Core styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  
+  <!-- Page-specific styles -->
   {% block extra_css %}{% endblock %}
+  
+  <!-- Page-specific head content -->
+  {% block head %}{% endblock %}
 </head>
 <body>
-
-{# pick where the brand should point: logged-in → /home ; guest → / #}
-{% set brand_route = 'home' if session.get('user_id') else 'base' %}
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  <div class="container-fluid">
-
-    <!-- brand (left) -->
-    <a class="navbar-brand d-flex align-items-center"
-       href="{{ url_for(brand_route) }}">
-      <img src="{{ url_for('static', filename='images/logo.png') }}"
-           alt="Flight IQ" height="34" class="me-2">
-      Flight&nbsp;IQ
-    </a>
-
-    <!-- page-specific links (middle) -->
-    <div class="navbar-nav ms-3">
-      {% block navbar_links %}{% endblock %}
-    </div>
-
-    <!-- auth controls (right) -->
-    {% if session.get('user_id') %}
-      <!-- signed-in user → Logout -->
-      <a href="{{ url_for('logout') }}"
-         class="btn btn-outline-light ms-auto">
-        Logout
+  {# ── Navbar ─────────────────────────────────────────────────────── #}
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <!-- Brand & Logo -->
+      <a class="navbar-brand" href="{{ url_for('base' if not session.get('user_id') else 'home') }}">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Flight IQ" height="40">
+        <span>Flight IQ</span>
       </a>
-    {% else %}
-      <!-- guest → show the *other* auth action -->
-      <div class="ms-auto">
-        {% if request.endpoint == 'signup' %}
-          <a class="btn btn-link text-white me-2"
-             href="{{ url_for('login') }}">
-            Log&nbsp;in
-          </a>
-        {% elif request.endpoint == 'login' %}
-          <a class="btn btn-link text-white me-2"
-             href="{{ url_for('signup') }}">
-            Sign-up
-          </a>
-        {% else %}
-          <!-- any other public page → show both -->
-          <a class="btn btn-link text-white me-2"
-             href="{{ url_for('login') }}">
-            Log&nbsp;in
-          </a>
-          <a class="btn btn-link text-white"
-             href="{{ url_for('signup') }}">
-            Sign-up
-          </a>
-        {% endif %}
+      
+      <!-- Mobile Toggle Button -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <i class="fas fa-bars text-white"></i>
+      </button>
+      
+      <!-- Navbar Content -->
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <!-- Left-side navigation links -->
+        <ul class="navbar-nav me-auto">
+          {% if session.get('user_id') %}
+            {% if session.get('role') == 'customer' %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Dashboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'customer_flight_search' %}active{% endif %}" href="{{ url_for('customer_flight_search') }}">Search Flights</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'customer_past_flights' %}active{% endif %}" href="{{ url_for('customer_past_flights') }}">Past Flights</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'customer_spending' %}active{% endif %}" href="{{ url_for('customer_spending') }}">Spending</a>
+              </li>
+            {% elif session.get('role') == 'agent' %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Dashboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'agent_flight_search' %}active{% endif %}" href="{{ url_for('agent_flight_search') }}">Book Flight</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'agent_past_flights' %}active{% endif %}" href="{{ url_for('agent_past_flights') }}">Past Sales</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'agent_commission' %}active{% endif %}" href="{{ url_for('agent_commission') }}">Commission</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'agent_top_customers' %}active{% endif %}" href="{{ url_for('agent_top_customers') }}">Top Customers</a>
+              </li>
+            {% elif session.get('role') == 'staff' %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Dashboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'staff_flights' %}active{% endif %}" href="{{ url_for('staff_flights') }}">Flights</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'staff_analytics' %}active{% endif %}" href="{{ url_for('staff_analytics') }}">Analytics</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.endpoint == 'staff_customers' %}active{% endif %}" href="{{ url_for('staff_customers') }}">Customers</a>
+              </li>
+              {% if 'Admin' in (session.get('permissions') or []) %}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                    Admin
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ url_for('staff_new_flight') }}">Create Flight</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('staff_add_airplane') }}">Add Airplane</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('staff_add_airport') }}">Add Airport</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('staff_view_booking_agents') }}">Booking Agents</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('staff_manage_permissions') }}">Staff Permissions</a></li>
+                  </ul>
+                </li>
+              {% endif %}
+            {% endif %}
+          {% else %}
+            <!-- Navigation for non-logged in users -->
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'base' %}active{% endif %}" href="{{ url_for('base') }}">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('base') }}#features">Features</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('base') }}#testimonials">Testimonials</a>
+            </li>
+          {% endif %}
+        </ul>
+        
+        <!-- Right-side auth links -->
+        <div class="ms-auto d-flex align-items-center">
+          {% if session.get('user_id') %}
+            <!-- User is logged in -->
+            <div class="user-info me-3 d-none d-md-block">
+              <span class="text-white">
+                {% if session.get('role') == 'customer' %}
+                  <i class="fas fa-user me-1"></i> {{ session.get('user_id') }}
+                {% elif session.get('role') == 'agent' %}
+                  <i class="fas fa-briefcase me-1"></i> Agent: {{ session.get('user_id') }}
+                {% elif session.get('role') == 'staff' %}
+                  <i class="fas fa-id-badge me-1"></i> Staff: {{ session.get('user_id') }}
+                {% endif %}
+              </span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">
+              <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </a>
+          {% else %}
+            <!-- User is not logged in -->
+            <a href="{{ url_for('login') }}" class="btn btn-outline-light me-2">
+              <i class="fas fa-sign-in-alt me-1"></i> Login
+            </a>
+            <a href="{{ url_for('signup') }}" class="btn btn-light">
+              <i class="fas fa-user-plus me-1"></i> Sign Up
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  {# ── Flash Messages ────────────────────────────────────────────── #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade-in" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
       </div>
     {% endif %}
+  {% endwith %}
 
-  </div>
-</nav>
+  {# ── Main Content ────────────────────────────────────────────── #}
+  <main class="container py-4">
+    {% block content %}{% endblock %}
+  </main>
 
-{# ── flash messages (Bootstrap) ────────────────────────────────────── #}
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% if msgs %}
-    <div class="container mt-3">
-      {% for cat, msg in msgs %}
-        <div class="alert alert-{{ 'danger' if cat == 'danger' else cat }}
-                    alert-dismissible fade show" role="alert">
-          {{ msg }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"
-                  aria-label="Close"></button>
+  {# ── Footer ────────────────────────────────────────────────── #}
+  <footer class="bg-dark text-white py-4 mt-5">
+    <div class="container">
+      <div class="row">
+        <!-- Company Info -->
+        <div class="col-md-4 mb-4 mb-md-0">
+          <h5 class="mb-3">Flight IQ</h5>
+          <p class="mb-0">Where your next adventure starts. Booking smarter, flying better.</p>
+          <div class="mt-3">
+            <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="text-white me-2"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+          </div>
         </div>
-      {% endfor %}
+        
+        <!-- Quick Links -->
+        <div class="col-md-4 mb-4 mb-md-0">
+          <h5 class="mb-3">Quick Links</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2"><a href="{{ url_for('base') }}" class="text-white text-decoration-none">Home</a></li>
+            <li class="mb-2"><a href="#" class="text-white text-decoration-none">About Us</a></li>
+            <li class="mb-2"><a href="#" class="text-white text-decoration-none">Contact</a></li>
+            <li><a href="#" class="text-white text-decoration-none">Terms & Conditions</a></li>
+          </ul>
+        </div>
+        
+        <!-- Contact -->
+        <div class="col-md-4">
+          <h5 class="mb-3">Contact Us</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> 123 Airport Ave, New York, NY</li>
+            <li class="mb-2"><i class="fas fa-phone me-2"></i> (123) 456-7890</li>
+            <li><i class="fas fa-envelope me-2"></i> info@flightiq.com</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Copyright -->
+      <div class="border-top border-secondary pt-3 mt-3 text-center">
+        <p class="mb-0">&copy; 2025 Flight IQ. All rights reserved.</p>
+      </div>
     </div>
-  {% endif %}
-{% endwith %}
+  </footer>
 
-<main class="container my-4">
-  {% block content %}{% endblock %}
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-{% block scripts %}{% endblock %}
+  {# ── Scripts ────────────────────────────────────────────────── #}
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Common JS -->
+  <script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+      
+      // Auto-hide flash messages
+      const flashMessages = document.querySelectorAll('.alert-dismissible');
+      flashMessages.forEach(function(alert) {
+        setTimeout(function() {
+          const closeBtn = alert.querySelector('.btn-close');
+          if (closeBtn) closeBtn.click();
+        }, 5000);
+      });
+    });
+  </script>
+  
+  <!-- Page-specific scripts -->
+  {% block scripts %}{% endblock %}
 </body>
 </html>

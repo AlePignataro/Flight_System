@@ -1,0 +1,707 @@
+/* ======== Dashboard Styles ======== */
+
+/* Welcome Header */
+.dashboard-header {
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  
+  .dashboard-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--primary-dark);
+  }
+  
+  .dashboard-header .subtitle {
+    font-size: 1.1rem;
+    color: var(--secondary);
+    margin-bottom: 0;
+  }
+  
+  /* Dashboard Navigation */
+  .dashboard-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  .dashboard-nav-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    background-color: var(--white);
+    color: var(--dark);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    transition: var(--transition-base);
+  }
+  
+  .dashboard-nav-item:hover {
+    background-color: rgba(26, 58, 110, 0.05);
+    color: var(--primary);
+    text-decoration: none;
+  }
+  
+  .dashboard-nav-item.active {
+    background-color: var(--primary);
+    color: var(--white);
+  }
+  
+  .dashboard-nav-item i {
+    margin-right: 0.5rem;
+  }
+  
+  /* Dashboard Filters */
+  .dashboard-filter-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .dashboard-filter-card h5 {
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+  }
+  
+  .dashboard-filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .filter-group {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .filter-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  
+  .filter-group .form-control,
+  .filter-group .form-select {
+    width: 100%;
+  }
+  
+  .filter-actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  
+  /* Dashboard Stats */
+  .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .stat-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition-base);
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+  }
+  
+  .stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .stat-title {
+    font-weight: 600;
+    color: var(--secondary);
+    margin: 0;
+  }
+  
+  .stat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(26, 58, 110, 0.1);
+    color: var(--primary);
+    font-size: 1.25rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-subtitle {
+    color: var(--secondary);
+    font-size: 0.9rem;
+  }
+  
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .stat-trend-icon {
+    margin-right: 0.5rem;
+  }
+  
+  .stat-trend.positive {
+    color: var(--success);
+  }
+  
+  .stat-trend.negative {
+    color: var(--danger);
+  }
+  
+  /* Dashboard Charts */
+  .dashboard-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .chart-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    height: 100%;
+  }
+  
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .chart-title {
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .chart-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .chart-container {
+    width: 100%;
+    height: 300px;
+    position: relative;
+  }
+  
+  /* Dashboard Tables */
+  .dashboard-table-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .dashboard-table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .dashboard-table-title {
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .dashboard-table th {
+    background-color: rgba(26, 58, 110, 0.05);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    color: var(--primary-dark);
+  }
+  
+  .dashboard-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    color: var(--dark);
+  }
+  
+  .dashboard-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .dashboard-table tbody tr:hover {
+    background-color: rgba(26, 58, 110, 0.02);
+  }
+  
+  .dashboard-table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+  
+  .table-pagination {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--dark);
+    font-weight: 500;
+    transition: var(--transition-base);
+  }
+  
+  .page-link:hover {
+    background-color: rgba(26, 58, 110, 0.05);
+  }
+  
+  .page-link.active {
+    background-color: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+  }
+  
+  .page-link.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  
+  /* Customer Dashboard Specific */
+  .ticket-list {
+    margin-bottom: 2rem;
+  }
+  
+  .ticket-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: var(--transition-base);
+  }
+  
+  .ticket-card:hover {
+    box-shadow: var(--shadow);
+  }
+  
+  .ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .ticket-airline {
+    font-weight: 600;
+    color: var(--primary);
+  }
+  
+  .ticket-id {
+    background-color: rgba(26, 58, 110, 0.1);
+    color: var(--primary);
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+  }
+  
+  .ticket-content {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .ticket-route {
+    flex: 3;
+    display: flex;
+    align-items: center;
+  }
+  
+  .ticket-departure,
+  .ticket-arrival {
+    flex: 1;
+  }
+  
+  .ticket-airport {
+    font-weight: 600;
+  }
+  
+  .ticket-datetime {
+    color: var(--secondary);
+    font-size: 0.9rem;
+  }
+  
+  .ticket-route-arrow {
+    margin: 0 1.5rem;
+    color: var(--secondary);
+  }
+  
+  .ticket-details {
+    flex: 1;
+    text-align: right;
+  }
+  
+  .ticket-price {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--primary-dark);
+  }
+  
+  .ticket-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+  
+  .ticket-status.on-time {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: var(--success);
+  }
+  
+  .ticket-status.delayed {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: var(--warning);
+  }
+  
+  .ticket-status.cancelled {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger);
+  }
+  
+  /* Spending Dashboard */
+  .spending-summary {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .spending-chart-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Agent Dashboard Specific */
+  .commission-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .customer-list {
+    margin-bottom: 2rem;
+  }
+  
+  .customer-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: var(--transition-base);
+  }
+  
+  .customer-card:hover {
+    box-shadow: var(--shadow);
+  }
+  
+  .customer-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: rgba(26, 58, 110, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-weight: 600;
+    margin-right: 1rem;
+  }
+  
+  .customer-details {
+    flex: 1;
+  }
+  
+  .customer-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  .customer-email {
+    color: var(--secondary);
+  }
+  
+  .customer-stats {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .customer-stat {
+    text-align: center;
+  }
+  
+  .customer-stat-value {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--primary-dark);
+  }
+  
+  .customer-stat-label {
+    color: var(--secondary);
+    font-size: 0.9rem;
+  }
+  
+  .customer-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  /* Airlines Staff Dashboard Specific */
+  .flight-status-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .status-option {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .status-option input[type="radio"] {
+    display: none;
+  }
+  
+  .status-option label {
+    display: block;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: var(--transition-base);
+  }
+  
+  .status-option input[type="radio"]:checked + label {
+    background-color: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
+  }
+  
+  .flight-management-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .flight-management-card {
+    flex: 1;
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    text-align: center;
+    transition: var(--transition-base);
+  }
+  
+  .flight-management-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+  }
+  
+  .flight-management-icon {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+  }
+  
+  .flight-management-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .flight-management-description {
+    color: var(--secondary);
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Form Modals */
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-base);
+  }
+  
+  .modal-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .modal-dialog {
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .modal-backdrop.active .modal-dialog {
+    transform: translateY(0);
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .modal-title {
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--secondary);
+    transition: var(--transition-base);
+  }
+  
+  .modal-close:hover {
+    color: var(--danger);
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 991.98px) {
+    .dashboard-stats {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    .dashboard-charts,
+    .spending-chart-container {
+      grid-template-columns: 1fr;
+    }
+    
+    .ticket-content {
+      flex-direction: column;
+    }
+    
+    .ticket-route {
+      margin-bottom: 1rem;
+    }
+    
+    .ticket-details {
+      text-align: left;
+    }
+    
+    .spending-summary {
+      flex-direction: column;
+    }
+    
+    .customer-card {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .customer-avatar {
+      margin-right: 0;
+      margin-bottom: 1rem;
+    }
+    
+    .customer-stats {
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+  }
+  
+  @media (max-width: 767.98px) {
+    .dashboard-nav {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .dashboard-nav-item {
+      width: 100%;
+    }
+    
+    .flight-management-actions {
+      flex-direction: column;
+    }
+  }

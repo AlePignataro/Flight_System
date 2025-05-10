@@ -1,120 +1,585 @@
-{# ── templates/signup.html ─────────────────────────────────────────── #}
 {% extends "base.html" %}
+{% block title %}Sign Up - Flight IQ{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<style>
+  /* Step Navigation */
+  .step-indicator {
+    display: flex;
+    margin-bottom: 2rem;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+  
+  .step-indicator::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: 1;
+  }
+  
+  .step {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #e9ecef;
+    color: #6c757d;
+    font-weight: 600;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s;
+  }
+  
+  .step.active {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+  
+  .step.completed {
+    background-color: var(--success);
+    border-color: var(--success);
+    color: white;
+  }
+  
+  /* Form Sections */
+  .form-section {
+    display: none;
+  }
+  
+  .form-section.active {
+    display: block;
+    animation: fadeIn 0.5s;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Role Selection */
+  .role-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .role-option input[type="radio"] {
+    display: none;
+  }
+  
+  .role-option label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .role-option i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    color: var(--primary);
+  }
+  
+  .role-option input[type="radio"]:checked + label {
+    border-color: var(--primary);
+    background-color: rgba(26, 58, 110, 0.05);
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+  }
+  
+  /* Form Layout */
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+  }
+  
+  .form-section-title {
+    margin-bottom: 1.5rem;
+    color: var(--primary-dark);
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 0.75rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-
-<h2 class="mb-3">Sign up</h2>
-
-<form method="post" id="signup-form" novalidate>
-  <!-- ── choose role ──────────────────────────────────────────────── -->
-  <div class="mb-3">
-    <label for="role" class="form-label">I am signing up as …</label>
-    <select id="role" name="role" class="form-select" required>
-      <option value="" selected hidden>Choose…</option>
-      <option value="customer">Customer</option>
-      <option value="agent">Booking agent</option>
-      <option value="staff">Airline staff</option>
-    </select>
-  </div>
-
-  <!-- ── fields common to every role ──────────────────────────────── -->
-  <div id="common-fields" class="d-none">
-    <div class="mb-3">
-      <label id="id-label" class="form-label">Username / email</label>
-      <input id="id-input" name="username" class="form-control" required>
+<div class="auth-container">
+  <div class="auth-content">
+    <div class="auth-card">
+      <h2>Create Your Account</h2>
+      
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="auth-message {{ category }}">
+              <i class="fas fa-{% if category == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      
+      <!-- Step indicator -->
+      <div class="step-indicator">
+        <div class="step active" id="step-1"><i class="fas fa-user"></i></div>
+        <div class="step" id="step-2"><i class="fas fa-id-card"></i></div>
+        <div class="step" id="step-3"><i class="fas fa-check"></i></div>
+      </div>
+      
+      <form id="signup-form" method="post" novalidate>
+        <!-- Step 1: Choose Role -->
+        <div class="form-section active" id="section-1">
+          <h3 class="form-section-title">Choose Your Role</h3>
+          
+          <div class="role-options">
+            <div class="role-option">
+              <input type="radio" id="role-customer" name="role" value="customer" checked>
+              <label for="role-customer">
+                <i class="fas fa-user"></i>
+                <span>Customer</span>
+              </label>
+            </div>
+            
+            <div class="role-option">
+              <input type="radio" id="role-agent" name="role" value="agent">
+              <label for="role-agent">
+                <i class="fas fa-briefcase"></i>
+                <span>Booking Agent</span>
+              </label>
+            </div>
+            
+            <div class="role-option">
+              <input type="radio" id="role-staff" name="role" value="staff">
+              <label for="role-staff">
+                <i class="fas fa-id-badge"></i>
+                <span>Airline Staff</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="form-buttons">
+            <span></span> <!-- Empty span for flex layout -->
+            <button type="button" class="btn btn-primary" onclick="nextStep(1)">
+              Continue <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Step 2: Account Information -->
+        <div class="form-section" id="section-2">
+          <h3 class="form-section-title">Account Information</h3>
+          
+          <div class="auth-form-group">
+            <label for="username-email" id="username-label">Email</label>
+            <input type="email" id="username-email" name="username" class="form-control" required>
+            <div class="invalid-feedback">Please provide a valid email.</div>
+          </div>
+          
+          <div class="auth-form-group">
+            <label for="password">Password</label>
+            <div class="password-input">
+              <input type="password" id="password" name="password" class="form-control" required>
+              <button type="button" class="password-toggle" onclick="togglePassword()">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div class="invalid-feedback">Password is required.</div>
+          </div>
+          
+          <div class="auth-form-group booking-agent-field">
+            <label for="booking_agent_id">Booking Agent ID</label>
+            <input type="text" id="booking_agent_id" name="booking_agent_id" class="form-control">
+            <div class="invalid-feedback">Booking Agent ID is required.</div>
+          </div>
+          
+          <div class="form-buttons">
+            <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+              <i class="fas fa-arrow-left me-2"></i> Back
+            </button>
+            <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+              Continue <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Step 3: Role-specific Information -->
+        <div class="form-section" id="section-3">
+          <!-- Customer Fields -->
+          <div id="customer-fields">
+            <h3 class="form-section-title">Personal Information</h3>
+            
+            <div class="form-row">
+              <div class="auth-form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" name="first_name" class="form-control" required>
+                <div class="invalid-feedback">First name is required.</div>
+              </div>
+              
+              <div class="auth-form-group">
+                <label for="middle_name">Middle Name</label>
+                <input type="text" id="middle_name" name="middle_name" class="form-control">
+              </div>
+              
+              <div class="auth-form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" name="last_name" class="form-control" required>
+                <div class="invalid-feedback">Last name is required.</div>
+              </div>
+            </div>
+            
+            <div class="auth-form-group">
+              <label for="dob">Date of Birth</label>
+              <input type="date" id="dob" name="dob" class="form-control" required>
+              <div class="invalid-feedback">Date of birth is required.</div>
+            </div>
+            
+            <h4 class="mt-4 mb-3">Address</h4>
+            
+            <div class="form-row">
+              <div class="auth-form-group">
+                <label for="building_name">Building/Street</label>
+                <input type="text" id="building_name" name="building_name" class="form-control" required>
+                <div class="invalid-feedback">Building/Street is required.</div>
+              </div>
+              
+              <div class="auth-form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" name="city" class="form-control" required>
+                <div class="invalid-feedback">City is required.</div>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="auth-form-group">
+                <label for="state">State</label>
+                <input type="text" id="state" name="state" class="form-control" required>
+                <div class="invalid-feedback">State is required.</div>
+              </div>
+              
+              <div class="auth-form-group">
+                <label for="zip_code">ZIP Code</label>
+                <input type="text" id="zip_code" name="zip_code" class="form-control" required>
+                <div class="invalid-feedback">ZIP code is required.</div>
+              </div>
+            </div>
+            
+            <div class="auth-form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" class="form-control" required>
+              <div class="invalid-feedback">Phone number is required.</div>
+            </div>
+            
+            <h4 class="mt-4 mb-3">Passport Information</h4>
+            
+            <div class="form-row">
+              <div class="auth-form-group">
+                <label for="passport_no">Passport Number</label>
+                <input type="text" id="passport_no" name="passport_no" class="form-control" required>
+                <div class="invalid-feedback">Passport number is required.</div>
+              </div>
+              
+              <div class="auth-form-group">
+                <label for="passport_country">Passport Country</label>
+                <input type="text" id="passport_country" name="passport_country" class="form-control" required>
+                <div class="invalid-feedback">Passport country is required.</div>
+              </div>
+            </div>
+            
+            <div class="auth-form-group">
+              <label for="passport_exp">Passport Expiration Date</label>
+              <input type="date" id="passport_exp" name="passport_exp" class="form-control" required>
+              <div class="invalid-feedback">Passport expiration date is required.</div>
+            </div>
+          </div>
+          
+          <!-- Staff Fields -->
+          <div id="staff-fields">
+            <h3 class="form-section-title">Staff Information</h3>
+            
+            <div class="form-row">
+              <div class="auth-form-group">
+                <label for="staff_first_name">First Name</label>
+                <input type="text" id="staff_first_name" name="first_name" class="form-control" required>
+                <div class="invalid-feedback">First name is required.</div>
+              </div>
+              
+              <div class="auth-form-group">
+                <label for="staff_middle_name">Middle Name</label>
+                <input type="text" id="staff_middle_name" name="middle_name" class="form-control">
+              </div>
+              
+              <div class="auth-form-group">
+                <label for="staff_last_name">Last Name</label>
+                <input type="text" id="staff_last_name" name="last_name" class="form-control" required>
+                <div class="invalid-feedback">Last name is required.</div>
+              </div>
+            </div>
+            
+            <div class="auth-form-group">
+              <label for="staff_dob">Date of Birth</label>
+              <input type="date" id="staff_dob" name="dob" class="form-control" required>
+              <div class="invalid-feedback">Date of birth is required.</div>
+            </div>
+            
+            <div class="auth-form-group">
+              <label for="airline_name">Airline</label>
+              <input type="text" id="airline_name" name="airline_name" class="form-control" required>
+              <div class="invalid-feedback">Airline name is required.</div>
+            </div>
+          </div>
+          
+          <div class="form-buttons">
+            <button type="button" class="btn btn-outline-secondary" onclick="prevStep(3)">
+              <i class="fas fa-arrow-left me-2"></i> Back
+            </button>
+            <button type="submit" class="btn btn-success">
+              <i class="fas fa-user-plus me-2"></i> Create Account
+            </button>
+          </div>
+        </div>
+      </form>
+      
+      <div class="auth-alt-action">
+        <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+      </div>
     </div>
-
-    <div class="mb-3">
-      <label class="form-label">Password</label>
-      <input name="password" type="password" class="form-control" required>
-    </div>
   </div>
+</div>
+{% endblock %}
 
-  <!-- ── customer-only fields ─────────────────────────────────────── -->
-  <div id="customer-fields" class="role-fields d-none">
-    <div class="mb-3"><label>First name         <input  name="first_name"        class="form-control" required></label></div>
-    <div class="mb-3"><label>Middle name        <input  name="middle_name"       class="form-control"></label></div>
-    <div class="mb-3"><label>Last name          <input  name="last_name"         class="form-control" required></label></div>
-    <div class="mb-3"><label>State              <input  name="state"             class="form-control" required></label></div>
-    <div class="mb-3"><label>City               <input  name="city"              class="form-control" required></label></div>
-    <div class="mb-3"><label>Building / street  <input  name="building_name"     class="form-control" required></label></div>
-    <div class="mb-3"><label>ZIP code           <input  name="zip_code"          class="form-control" required></label></div>
-    <div class="mb-3"><label>Phone              <input  name="phone"             class="form-control" required></label></div>
-    <div class="mb-3"><label>Passport #         <input  name="passport_no"       class="form-control" required></label></div>
-    <div class="mb-3"><label>Passport country   <input  name="passport_country"  class="form-control" required></label></div>
-    <div class="mb-3"><label>Passport expiry    <input  name="passport_exp" type="date" class="form-control" required></label></div>
-    <div class="mb-3"><label>Date of birth      <input  name="dob"         type="date" class="form-control" required></label></div>
-  </div>
-
-  <!-- ── booking-agent-only fields ────────────────────────────────── -->
-  <div id="agent-fields" class="role-fields d-none">
-    <div class="mb-3"><label>Booking-agent ID   <input name="booking_agent_id" class="form-control" required></label></div>
-  </div>
-
-  <!-- ── airline-staff-only fields ────────────────────────────────── -->
-  <div id="staff-fields" class="role-fields d-none">
-    <div class="mb-3"><label>First name         <input name="first_name"     class="form-control" required></label></div>
-    <div class="mb-3"><label>Middle name        <input name="middle_name"    class="form-control"></label></div>
-    <div class="mb-3"><label>Last name          <input name="last_name"      class="form-control" required></label></div>
-    <div class="mb-3"><label>Airline            <input name="airline_name"   class="form-control" required></label></div>
-    <div class="mb-3"><label>Date of birth      <input name="dob" type="date" class="form-control" required></label></div>
-  </div>
-
-  <button id="submit-btn" type="submit" class="btn btn-primary mt-3 d-none">
-    Create account
-  </button>
-</form>
-
-<!-- ── role-switching script ───────────────────────────────────────── -->
+{% block scripts %}
 <script>
-/*                                                              *
- *  Show / hide role-specific sections and keep hidden inputs
- *  from being submitted (disabled = true).                     *
- *                                                              */
-const roleSelect    = document.getElementById('role');
-const submitBtn     = document.getElementById('submit-btn');
-const commonFields  = document.getElementById('common-fields');
-const idLabel       = document.getElementById('id-label');
-const idInput       = document.getElementById('id-input');
-const roleSections  = document.querySelectorAll('.role-fields');
-
-function enable(section, yes = true) {
-  section.querySelectorAll('input,select').forEach(i => { i.disabled = !yes; });
-}
-
-function configureIdField(role) {
-  if (role === 'staff') {
-    idLabel.textContent = 'Username';
-    idInput.type        = 'text';
-    idInput.placeholder = 'Pick a unique username';
-  } else {                      // customer or agent
-    idLabel.textContent = 'Email';
-    idInput.type        = 'email';
-    idInput.placeholder = 'name@example.com';
+  // Current step tracking
+  let currentStep = 1;
+  
+  // Role selection elements
+  const roleRadios = document.querySelectorAll('input[name="role"]');
+  const usernameLabel = document.getElementById('username-label');
+  const usernameInput = document.getElementById('username-email');
+  const agentIdField = document.querySelector('.booking-agent-field');
+  const customerFields = document.getElementById('customer-fields');
+  const staffFields = document.getElementById('staff-fields');
+  
+  // Form field collections
+  const customerRequiredFields = customerFields.querySelectorAll('input[required]');
+  const staffRequiredFields = staffFields.querySelectorAll('input[required]');
+  
+  // Initialize form
+  function initForm() {
+    // Hide role-specific fields
+    agentIdField.style.display = 'none';
+    staffFields.style.display = 'none';
+    
+    // Add event listeners to role radio buttons
+    roleRadios.forEach(radio => {
+      radio.addEventListener('change', updateFormBasedOnRole);
+    });
+    
+    // Initialize form based on default role (customer)
+    updateFormBasedOnRole();
   }
-}
-
-roleSelect.addEventListener('change', ({ target: { value: role } }) => {
-
-  /* hide every role-specific block and disable its inputs */
-  roleSections.forEach(sec => {
-    sec.classList.add('d-none');
-    enable(sec, false);
+  
+  // Update form fields based on selected role
+  function updateFormBasedOnRole() {
+    const selectedRole = document.querySelector('input[name="role"]:checked').value;
+    
+    // Update username field label and type
+    if (selectedRole === 'staff') {
+      usernameLabel.textContent = 'Username';
+      usernameInput.type = 'text';
+      usernameInput.placeholder = 'Choose a unique username';
+    } else {
+      usernameLabel.textContent = 'Email';
+      usernameInput.type = 'email';
+      usernameInput.placeholder = 'your.email@example.com';
+    }
+    
+    // Show/hide booking agent ID field
+    agentIdField.style.display = selectedRole === 'agent' ? 'block' : 'none';
+    
+    // For step 3, show appropriate fields
+    if (selectedRole === 'customer') {
+      customerFields.style.display = 'block';
+      staffFields.style.display = 'none';
+      
+      // Enable/disable required fields
+      customerRequiredFields.forEach(field => field.required = true);
+      staffRequiredFields.forEach(field => field.required = false);
+    } else if (selectedRole === 'staff') {
+      customerFields.style.display = 'none';
+      staffFields.style.display = 'block';
+      
+      // Enable/disable required fields
+      customerRequiredFields.forEach(field => field.required = false);
+      staffRequiredFields.forEach(field => field.required = true);
+    } else {
+      // For agent, hide both customer and staff fields
+      customerFields.style.display = 'none';
+      staffFields.style.display = 'none';
+      
+      // Disable all required fields
+      customerRequiredFields.forEach(field => field.required = false);
+      staffRequiredFields.forEach(field => field.required = false);
+    }
+  }
+  
+  // Toggle password visibility
+  function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const icon = document.querySelector('.password-toggle i');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+  
+  // Move to next step
+  function nextStep(step) {
+    if (step === 1 || validateStep(step)) {
+      document.getElementById(`section-${step}`).classList.remove('active');
+      document.getElementById(`section-${step + 1}`).classList.add('active');
+      
+      document.getElementById(`step-${step}`).classList.remove('active');
+      document.getElementById(`step-${step}`).classList.add('completed');
+      document.getElementById(`step-${step + 1}`).classList.add('active');
+      
+      currentStep = step + 1;
+      window.scrollTo(0, 0);
+      
+      // If moving to step 3, ensure role-specific fields are shown/hidden correctly
+      if (currentStep === 3) {
+        updateFormBasedOnRole();
+      }
+    }
+  }
+  
+  // Move to previous step
+  function prevStep(step) {
+    document.getElementById(`section-${step}`).classList.remove('active');
+    document.getElementById(`section-${step - 1}`).classList.add('active');
+    
+    document.getElementById(`step-${step}`).classList.remove('active');
+    document.getElementById(`step-${step - 1}`).classList.remove('completed');
+    document.getElementById(`step-${step - 1}`).classList.add('active');
+    
+    currentStep = step - 1;
+    window.scrollTo(0, 0);
+  }
+  
+  // Validate current step
+  function validateStep(step) {
+    let isValid = true;
+    
+    if (step === 2) {
+      const username = usernameInput.value.trim();
+      const password = document.getElementById('password').value.trim();
+      const selectedRole = document.querySelector('input[name="role"]:checked').value;
+      
+      // Validate username/email
+      if (!username) {
+        usernameInput.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        usernameInput.classList.remove('is-invalid');
+      }
+      
+      // Validate password
+      if (!password) {
+        document.getElementById('password').classList.add('is-invalid');
+        isValid = false;
+      } else {
+        document.getElementById('password').classList.remove('is-invalid');
+      }
+      
+      // Validate booking agent ID if applicable
+      if (selectedRole === 'agent') {
+        const agentId = document.getElementById('booking_agent_id').value.trim();
+        if (!agentId) {
+          document.getElementById('booking_agent_id').classList.add('is-invalid');
+          isValid = false;
+        } else {
+          document.getElementById('booking_agent_id').classList.remove('is-invalid');
+        }
+      }
+    }
+    
+    return isValid;
+  }
+  
+  // Submit form validation
+  document.getElementById('signup-form').addEventListener('submit', function(e) {
+    const selectedRole = document.querySelector('input[name="role"]:checked').value;
+    let isValid = true;
+    
+    // Basic validations that apply to all roles
+    if (!usernameInput.value.trim() || !document.getElementById('password').value.trim()) {
+      isValid = false;
+    }
+    
+    // Role-specific validations
+    if (selectedRole === 'agent' && !document.getElementById('booking_agent_id').value.trim()) {
+      isValid = false;
+    }
+    
+    if (selectedRole === 'customer') {
+      customerRequiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          field.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          field.classList.remove('is-invalid');
+        }
+      });
+    }
+    
+    if (selectedRole === 'staff') {
+      staffRequiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          field.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          field.classList.remove('is-invalid');
+        }
+      });
+    }
+    
+    if (!isValid) {
+      e.preventDefault();
+    }
   });
-
-  if (role) {
-    /* show the shared block + chosen role block */
-    commonFields.classList.remove('d-none');
-    const chosen = document.getElementById(`${role}-fields`);
-    chosen.classList.remove('d-none');
-    enable(chosen, true);
-
-    submitBtn.classList.remove('d-none');
-    configureIdField(role);
-  } else {
-    /* no role selected → hide everything */
-    commonFields.classList.add('d-none');
-    submitBtn.classList.add('d-none');
-  }
-});
+  
+  // Initialize form when DOM is loaded
+  document.addEventListener('DOMContentLoaded', initForm);
 </script>
 {% endblock %}
