@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Staff · New flight{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Create new flight</h2>
+
+<form method="post" class="row g-3">
+  <div class="col-md-4">
+    <label class="form-label">Flight ID</label>
+    <input name="Flight_ID" class="form-control" required>
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label">Airplane ID</label>
+    <input name="Airplane_ID" class="form-control" required>
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label">Price ($)</label>
+    <input name="Price" type="number" step="0.01" class="form-control" required>
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">Departure airport</label>
+    <input name="Departure_Airport" class="form-control" required>
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">Arrival airport</label>
+    <input name="Arrival_Airport" class="form-control" required>
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">Departure date</label>
+    <input name="Departure_Date" type="date" class="form-control" required>
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">Departure time</label>
+    <input name="Departure_Time" type="time" class="form-control" required>
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">Arrival date</label>
+    <input name="Arrival_Date" type="date" class="form-control" required>
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">Arrival time</label>
+    <input name="Arrival_Time" type="time" class="form-control" required>
+  </div>
+
+  <div class="col-12">
+    <button class="btn btn-primary">Create flight</button>
+  </div>
+</form>
+{% endblock %}

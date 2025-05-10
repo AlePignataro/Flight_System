@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Top Customers – Flight IQ{% endblock %}
+
+{% block extra_css %}
+<style>
+  .charts-flex {display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem}
+  .chart-box   {width:320px;max-width:400px}
+  #pieCustomers{max-height:400px}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="title">
+    <h1>Top Customers</h1>
+    <p class="subtitle">Your best clients by volume and commission</p>
+  </div>
+
+  <!-- charts side-by-side -->
+  <div class="charts-flex">
+    <div class="chart-box"><canvas id="pieCustomers"></canvas></div>
+    <div class="chart-box"><canvas id="barMonthly"></canvas></div>
+  </div>
+
+  <!-- tables (unchanged) -->
+  <section class="summary-block mb-4">
+    <h2>By tickets <small>(last&nbsp;6&nbsp;months)</small></h2>
+    <table class="table table-striped">
+      <thead><tr><th>E-mail</th><th># tickets</th></tr></thead>
+      <tbody>
+        {% for r in by_tickets %}
+          <tr><td>{{ r.customer }}</td><td>{{ r.tickets }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="summary-block">
+    <h2>By commission <small>(last&nbsp;12&nbsp;months)</small></h2>
+    <table class="table table-striped">
+      <thead><tr><th>E-mail</th><th>$ commission</th></tr></thead>
+      <tbody>
+        {% for r in by_commission %}
+          <tr><td>{{ r.customer }}</td><td>{{ r.commission }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<span id="chart-data"
+      data-pie-labels='{{ pie_labels   | tojson | safe }}'
+      data-pie-values='{{ pie_values   | tojson | safe }}'
+      data-months='{{ months           | tojson | safe }}'
+      data-month-totals='{{ month_totals | tojson | safe }}'
+      hidden></span>
+
+<script>
+  /* ---- fetch JSON from data-attributes ---- */
+  const carrier     = document.getElementById('chart-data');
+  const pieLabels   = JSON.parse(carrier.dataset.pieLabels);
+  const pieValues   = JSON.parse(carrier.dataset.pieValues);
+  const months      = JSON.parse(carrier.dataset.months);
+  const monthTotals = JSON.parse(carrier.dataset.monthTotals);
+
+  /* ---- pie chart --------------------------------------------------- */
+  new Chart(document.getElementById('pieCustomers'), {
+    type: 'pie',
+    data: { labels: pieLabels, datasets: [{ data: pieValues }] },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Commission share (12 mo)', font: { size: 18 } },
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+
+  /* ---- bar chart --------------------------------------------------- */
+  new Chart(document.getElementById('barMonthly'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{ label: 'Commission ($)', data: monthTotals }]
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Commission by month (12 mo)', font: { size: 18 } }
+      },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+</script>
+{% endblock %}

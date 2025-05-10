@@ -1,0 +1,120 @@
+{# ───────────────── customer_search.html ────────────────────────────── #}
+{% extends "base.html" %}
+
+{% block title %}Find & Buy Flights{% endblock %}
+
+{% block content %}
+<h3 class="mb-4">Find a flight</h3>
+
+{# ── search-box card ──────────────────────────────────────────────── #}
+<div class="card shadow-sm border-0 mb-4 mt-3">
+  <div class="card-body">
+
+    <form class="row gy-2 gx-3 align-items-end"
+          method="get"
+          action="{{ url_for('customer_flight_search') }}"
+          id="flight-search-form">
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label fw-semibold">From</label>
+        <select name="source" class="form-select" id="departure-airport">
+          <option value="" {{ 'selected' if request.args.get('source') in (None,'') else '' }}>All</option>
+          {% for ap in departure_airports %}
+            <option value="{{ ap }}"
+                    {{ 'selected' if request.args.get('source') == ap else '' }}>
+              {{ ap }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label fw-semibold">To</label>
+        <select name="destination" class="form-select" id="arrival-airport">
+          <option value="" {{ 'selected' if request.args.get('destination') in (None,'') else '' }}>All</option>
+          {% for ap in arrival_airports %}
+            <option value="{{ ap }}"
+                    {{ 'selected' if request.args.get('destination') == ap else '' }}>
+              {{ ap }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label fw-semibold">Date</label>
+        <input type="date"
+               name="start_date"
+               class="form-control"
+               value="{{ request.args.get('start_date','') }}">
+      </div>
+
+      <div class="col-lg-3 col-md-6 d-flex justify-content-end">
+        <button class="btn btn-primary px-4">Search</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+{# ── results table ────────────────────────────────────────────────── #}
+{% if flights %}
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>Airline</th>
+        <th>Flight #</th>
+        <th>Departure</th>
+        <th>Arrival</th>
+        <th class="text-end">Price ($)</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for f in flights %}
+      <tr>
+        <td>{{ f.Airline }}</td>
+        <td>{{ f.Flight_ID }}</td>
+        <td>
+          {{ f.Departure_Airport }}<br>
+          {{ f.Departure_Date }} {{ f.Departure_Time }}
+        </td>
+        <td>
+          {{ f.Arrival_Airport }}<br>
+          {{ f.Arrival_Date }} {{ f.Arrival_Time }}
+        </td>
+        <td class="text-end">{{ '%.2f' % f.Price }}</td>
+        <td>
+          <form method="post"
+                action="{{ url_for('customer_purchase',
+                                   airline=f.Airline,
+                                   flight_id=f.Flight_ID) }}">
+            <button class="btn btn-success btn-sm">Buy</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="text-muted">No flights match your search.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Disable selecting same airport for both drop-downs */
+function toggleOptions(changedId, targetId) {
+  const changed   = document.getElementById(changedId);
+  const targetSel = document.getElementById(targetId);
+  const selected  = changed.value;
+  [...targetSel.options].forEach(opt => {
+    opt.disabled = selected && opt.value === selected;
+  });
+}
+document.getElementById('departure-airport')
+        .addEventListener('change', () => toggleOptions('departure-airport','arrival-airport'));
+document.getElementById('arrival-airport')
+        .addEventListener('change', () => toggleOptions('arrival-airport','departure-airport'));
+</script>
+{% endblock %}

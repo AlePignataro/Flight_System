@@ -1,0 +1,37 @@
+{# ── templates/partials/flight_table_customer_purchase.html ──────────── #}
+<table class="table table-striped align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Airline</th>
+      <th>Flight #</th>
+      <th>Departure</th>
+      <th>Dep. Time</th>
+      <th>Arrival</th>
+      <th>Arr. Time</th>
+      <th>Status</th>
+      <th></th>  {# BUY column #}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+      <tr>
+        <td>{{ r.Airline }}</td>
+        <td>{{ r.Flight_Number }}</td>
+        <td>{{ r.Departure_Airport }}</td>
+        <td>{{ r.Departure_Time }}</td>
+        <td>{{ r.Arrival_Airport }}</td>
+        <td>{{ r.Arrival_Time }}</td>
+        <td>{{ r.Status_ }}</td>
+        <td>
+          <a  class="btn btn-sm btn-success"
+              href="{{ url_for('customer_purchase',
+                               airline=r.Airline,
+                               flight_id=r.Flight_Number) }}">
+              Buy
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+ß

@@ -1,0 +1,60 @@
+{# ── templates/partials/customer_filters.html ────────────────────────── #}
+<div class="card shadow-sm border-0 mb-4 mt-3">
+  <div class="card-body">
+
+    <form class="row gy-2 gx-3 align-items-end"
+          method="get"
+          action="{{ url_for('customer_flight_search') }}"
+          id="custFilters">
+
+      <h5 class="fw-bold mb-3">Search flights</h5>
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label">Start date</label>
+        <input type="date"
+               class="form-control"
+               name="start_date"
+               value="{{ request.args.get('start_date', '') }}">
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label">End date</label>
+        <input type="date"
+               class="form-control"
+               name="end_date"
+               value="{{ request.args.get('end_date', '') }}">
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label">Departure airport</label>
+        <select class="form-select" name="source">
+          <option value="">All</option>
+          {% for a in departure_airports %}
+            <option value="{{ a }}"
+                    {{ 'selected' if request.args.get('source') == a else '' }}>
+              {{ a }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <label class="form-label">Arrival airport</label>
+        <select class="form-select" name="destination">
+          <option value="">All</option>
+          {% for a in arrival_airports %}
+            <option value="{{ a }}"
+                    {{ 'selected' if request.args.get('destination') == a else '' }}>
+              {{ a }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12 d-flex justify-content-end mt-2">
+        <button class="btn btn-primary px-4">Search</button>
+      </div>
+    </form>
+
+  </div>
+</div>

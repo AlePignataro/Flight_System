@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Agents Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Booking Agents Management</h1>
+    
+    <!-- Period Selection -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">View Report Period</h5>
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('staff_view_booking_agents', period='month') }}" class="btn {% if period == 'month' %}btn-primary{% else %}btn-outline-primary{% endif %}">Last Month</a>
+                <a href="{{ url_for('staff_view_booking_agents', period='year') }}" class="btn {% if period == 'year' %}btn-primary{% else %}btn-outline-primary{% endif %}">Last Year</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Top Agents by Tickets Sold -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Top 5 Agents by Tickets Sold</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ticketsChart"></canvas>
+                    <table class="table table-striped mt-3">
+                        <thead>
+                            <tr>
+                                <th>Agent ID</th>
+                                <th>Email</th>
+                                <th>Tickets Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agent in top_tickets %}
+                            <tr>
+                                <td>{{ agent.agent_id }}</td>
+                                <td>{{ agent.agent_email }}</td>
+                                <td>{{ agent.tickets_sold }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Agents by Commission -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Top 5 Agents by Commission</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="commissionChart"></canvas>
+                    <table class="table table-striped mt-3">
+                        <thead>
+                            <tr>
+                                <th>Agent ID</th>
+                                <th>Email</th>
+                                <th>Commission</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agent in top_commission %}
+                            <tr>
+                                <td>{{ agent.agent_id }}</td>
+                                <td>{{ agent.agent_email }}</td>
+                                <td>${{ "%.2f"|format(agent.commission) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Bottom Agents -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Bottom 5 Agents by Performance</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Agent ID</th>
+                                <th>Email</th>
+                                <th>Tickets Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for agent in bottom_agents %}
+                            <tr>
+                                <td>{{ agent.agent_id }}</td>
+                                <td>{{ agent.agent_email }}</td>
+                                <td>{{ agent.tickets_sold }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sales Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Agent Sales Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Available Agents to Add -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Add New Booking Agents</h5>
+        </div>
+        <div class="card-body">
+            {% if available_agents %}
+            <p>The following booking agents can be added to work for your airline:</p>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Agent ID</th>
+                        <th>Email</th>
+                        <th>Current Airlines</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agent in available_agents %}
+                    <tr>
+                        <td>{{ agent.Booking_Agent_ID }}</td>
+                        <td>{{ agent.Email }}</td>
+                        <td>{{ agent.Current_Airlines or "None" }}</td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="agent_id" value="{{ agent.Booking_Agent_ID }}">
+                                <button type="submit" name="add_agent" value="1" class="btn btn-sm btn-primary">Add</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>All booking agents are already working for your airline.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Tickets Sold Chart
+    const ticketsCtx = document.getElementById('ticketsChart').getContext('2d');
+    const ticketsChart = new Chart(ticketsCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for agent in top_tickets %}'{{ agent.agent_id }}',{% endfor %}],
+            datasets: [{
+                label: 'Tickets Sold',
+                data: [{% for agent in top_tickets %}{{ agent.tickets_sold }},{% endfor %}],
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Commission Chart
+    const commissionCtx = document.getElementById('commissionChart').getContext('2d');
+    const commissionChart = new Chart(commissionCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for agent in top_commission %}'{{ agent.agent_id }}',{% endfor %}],
+            datasets: [{
+                label: 'Commission ($)',
+                data: [{% for agent in top_commission %}{{ agent.commission }},{% endfor %}],
+                backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Distribution Chart
+    const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+    const distributionChart = new Chart(distributionCtx, {
+        type: 'pie',
+        data: {
+            labels: [{% for agent in sales_distribution %}'{{ agent.agent_id }}',{% endfor %}],
+            datasets: [{
+                label: 'Sales Distribution',
+                data: [{% for agent in sales_distribution %}{{ agent.tickets_sold }},{% endfor %}],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)',
+                    'rgba(199, 199, 199, 0.7)',
+                    'rgba(83, 102, 255, 0.7)',
+                    'rgba(40, 159, 64, 0.7)',
+                    'rgba(210, 199, 199, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        }
+    });
+</script>
+{% endblock %}

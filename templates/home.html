@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Search – Flight IQ</title>
+
+    <!-- your *own* stylesheet (nothing else) -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+<body>
+
+<!-- ░░░ NAVBAR (matches home.css) ░░░ -->
+<div class="navbar">
+    <a href="/">
+        <img src="{{ url_for('static', filename='images/Logo.png') }}"
+             alt="Flight IQ Logo">
+    </a>
+
+    <div class="links">
+        <a href="/login">Log-in</a>
+        <a href="/signup">Sign-up</a>
+    </div>
+</div>
+
+<!-- ░░░ PAGE CONTENT ░░░ -->
+<div class="container">
+
+    <!-- title -->
+    <div class="title">
+        <h1>Flight IQ</h1>
+        <p class="subtitle">Where your next adventure starts</p>
+    </div>
+
+    <!-- search box (uses .search-box rules in home.css) -->
+    <div class="search-box">
+        <form method="POST">
+
+            <!-- departure dropdown -->
+            <label for="source_city">Departure</label>
+            <select id="source_city" name="source_city">
+                <option value="">Any</option>
+                {% for label in airport_labels %}
+                    <option value="{{ label }}"
+                            {% if label.startswith(form_values.src) or
+                                  label.endswith(form_values.src) %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <!-- destination dropdown -->
+            <label for="destination_city">Destination</label>
+            <select id="destination_city" name="destination_city">
+                <option value="">Any</option>
+                {% for label in airport_labels %}
+                    <option value="{{ label }}"
+                            {% if label.startswith(form_values.dest) or
+                                  label.endswith(form_values.dest) %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <!-- earliest date -->
+            <label for="date">Earliest departure date</label>
+            <input type="date"
+                   id="date"
+                   name="date"
+                   value="{{ form_values.date }}">
+
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <!-- results -->
+    {% if flights %}
+        <h2>Upcoming flights</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Flight #</th>
+                    <th>Airline</th>
+                    <th>Departure</th>
+                    <th>Destination</th>
+                    <th>Dep&nbsp;date</th>
+                    <th>Dep&nbsp;time</th>
+                    <th>Arr&nbsp;date</th>
+                    <th>Arr&nbsp;time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in flights %}
+                <tr>
+                    <td>{{ f.Flight_ID }}</td>
+                    <td>{{ f.Airline }}</td>
+                    <td>{{ f.Departure_Airport }} ({{ f.Departure_City }})</td>
+                    <td>{{ f.Arrival_Airport }} ({{ f.Arrival_City }})</td>
+                    <td>{{ f.Departure_Date }}</td>
+                    <td>{{ f.Departure_Time }}</td>
+                    <td>{{ f.Arrival_Date }}</td>
+                    <td>{{ f.Arrival_Time }}</td>
+                    <td>{{ f.Status_ }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% elif request.method == 'POST' %}
+        <p>No flights match your criteria.</p>
+
+    {% else %}
+        <p>No upcoming flights available.</p>
+    {% endif %}
+
+</div>
+</body>
+</html>

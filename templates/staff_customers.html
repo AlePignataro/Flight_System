@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Frequent customers{% endblock %}
+{% block content %}
+<h2 class="mb-4">Customer insights</h2>
+
+<!-- most-frequent customer card -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Most-frequent customer (last 12 mo.)</h5>
+    {% if frequent %}
+      <p class="mb-0">{{ frequent.Customer_Email }} — {{ frequent.flights }} flights</p>
+    {% else %}
+      <p class="text-muted mb-0">No data.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- lookup form -->
+<form method="post" class="row g-3 mb-3">
+  <div class="col-auto">
+    <input name="customer_email" class="form-control" placeholder="customer@email"
+           value="{{ email }}">
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-primary">Show flights</button>
+  </div>
+</form>
+
+{% if flights %}
+  <h5>Flights for {{ email }}</h5>
+  <table class="table table-sm">
+    <thead>
+      <tr>{% for h in flights[0].keys() %}<th>{{ h }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for f in flights %}
+        <tr>{% for v in f.values() %}<td>{{ v }}</td>{% endfor %}</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% elif email %}
+  <p class="text-muted">No flights found for that customer.</p>
+{% endif %}
+{% endblock %}

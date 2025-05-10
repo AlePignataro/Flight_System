@@ -1,0 +1,53 @@
+{#   templates/partials/staff_filters.html   #}
+<div class="card mt-4">
+  <div class="card-body">
+    <h5 class="card-title">Filter {{ airline_name }} flights</h5>
+
+    <form class="row gy-2 gx-3"
+          action="{{ url_for('staff_flights') }}"
+          method="get">                      {# ← GET keeps the session cookie #}
+
+      <div class="col-auto">
+        <label class="form-label mb-0">Start&nbsp;date</label>
+        <input type="date" name="start" class="form-control"
+               value="{{ start|default('') }}">
+      </div>
+
+      <div class="col-auto">
+        <label class="form-label mb-0">End&nbsp;date</label>
+        <input type="date" name="end" class="form-control"
+               value="{{ end|default('') }}">
+      </div>
+
+      <div class="col-auto">
+        <label class="form-label mb-0">Departure&nbsp;airport</label>
+        <select name="departure_airport" class="form-select">
+          <option value="All">All</option>
+          {% for ap in departure_airports %}
+              <option value="{{ ap }}"
+                      {% if ap == departure_airport %}selected{% endif %}>
+                  {{ ap }}
+              </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-auto">
+        <label class="form-label mb-0">Arrival&nbsp;airport</label>
+        <select name="arrival_airport" class="form-select">
+          <option value="All">All</option>
+          {% for ap in arrival_airports %}
+              <option value="{{ ap }}"
+                      {% if ap == arrival_airport %}selected{% endif %}>
+                  {{ ap }}
+              </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-auto align-self-end">
+        <button class="btn btn-primary">Search</button>
+      </div>
+    </form>
+  </div>
+</div>

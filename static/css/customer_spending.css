@@ -1,0 +1,36 @@
+/* ─────────── layout helpers ─────────── */
+#boxes{
+    display:flex;
+    flex-wrap:wrap;
+    gap:1.5rem;
+  }
+  @media (min-width:600px){
+    #boxes{flex-wrap:nowrap}
+  }
+  
+  /* two charts always on one row */
+  .charts-flex{
+    display:flex;
+    justify-content:center;
+    gap:2rem;
+    margin:2rem 0;
+    flex-wrap:nowrap;    /* never wrap */
+  }
+  
+  /* chart container */
+  .chart-row{
+    display:flex;
+    justify-content:center;
+    gap:2rem;
+    margin:2rem 0;
+  }
+  .chart-box{
+    width:300px;
+    max-width:300px;
+  }
+  .chart-box canvas{
+    width:100%!important;
+    height:300px!important;
+  }
+  #pieChart{height:280px!important}
+  

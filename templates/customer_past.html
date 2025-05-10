@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Past Flights{% endblock %}
+
+{% block extra_css %}
+<style>
+  .charts-flex{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin:2rem 0}
+  .chart-box {width:320px;max-width:400px} #pieChart{max-height:400px}
+</style>
+{% endblock %}
+
+{% block content %}
+<h3>Your past flights</h3>
+
+<form class="row row-cols-lg-auto g-3 align-items-end mb-4" method="POST">
+  <div class="col-12"><input class="form-control" type="date" name="start" value="{{ start }}"></div>
+  <div class="col-12"><input class="form-control" type="date" name="end"   value="{{ end }}"></div>
+  <div class="col-12">
+    <label class="form-label">Airport</label>
+    <select name="city" class="form-select">
+      <option value="" {% if not city %}selected{% endif %}>Any</option>
+      {% for ap in dep_airports + arr_airports %}
+        <option value="{{ ap }}" {% if ap == city %}selected{% endif %}>{{ ap }}</option>
+      {% endfor %} 
+    </select>
+  </div>
+  <div class="col-12"><button class="btn btn-primary">Filter</button></div>
+</form>
+
+{% if rows %}
+  {% set rows = rows %}
+  {% include "partials/flight_table.html" %}
+{% else %}
+  <p>No flights match your filters.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<span id="chart-data" hidden
+      data-pie-labels='{{ pie_labels|tojson|safe }}'
+      data-pie-values='{{ pie_values|tojson|safe }}'
+      data-bar-labels='{{ bar_labels|tojson|safe }}'
+      data-bar-values='{{ bar_values|tojson|safe }}'></span>
+
+<script>
+  const d = document.getElementById('chart-data');
+  const pieL = JSON.parse(d.dataset.pieLabels);
+  const pieV = JSON.parse(d.dataset.pieValues);
+  const barL = JSON.parse(d.dataset.barLabels);
+  const barV = JSON.parse(d.dataset.barValues);
+
+  // Pie chart: spend by airline
+  new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: {
+      labels: pieL,
+      datasets: [{
+        data: pieV
+      }]
+    },
+    options: {
+      plugins: {
+        title: { 
+          display: true,
+          text: 'Spending by Airline', 
+          font: { size: 18 }
+        },
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+
+  // Bar chart: spend per month
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: barL,
+      datasets: [{
+        label: 'Spending ($)',
+        data: barV
+      }]
+    },
+    options: {
+      plugins: {
+        title: { 
+          display: true,
+          text: 'Spending per Month',
+          font: { size: 18 }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

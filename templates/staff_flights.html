@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Flights – {{ airline_name }}{% endblock %}
+
+
+{% block extra_css %}
+<style>
+  .charts-flex{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin:2rem 0}
+  .chart-box {width:320px;max-width:400px}
+  #pieChart  {max-height:400px}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">Flights - {{ airline_name }}</h1>
+
+{% include "partials/staff_filters.html" %}
+
+<!-- identical layout to commission dashboard: two charts before the table -->
+<div class="charts-flex">
+  <div class="chart-box"><canvas id="pieChart"></canvas></div>
+  <div class="chart-box"><canvas id="barChart"></canvas></div>
+</div>
+
+<section class="mt-4">
+  {% set rows = flights %}
+  {% if is_operator %}
+      {% include "partials/flight_table_airline_staff_with_change_status.html" %}
+  {% else %}
+      {% include "partials/flight_table.html" %}
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<span id="data" hidden
+      data-pie-labels='{{ pie_labels|tojson|safe }}'
+      data-pie-values='{{ pie_values|tojson|safe }}'
+      data-bar-labels='{{ bar_labels|tojson|safe }}'
+      data-bar-values='{{ bar_values|tojson|safe }}'></span>
+
+<script>
+(() => {
+  const blob  = document.getElementById('data');
+  const pieL  = JSON.parse(blob.dataset.pieLabels);
+  const pieV  = JSON.parse(blob.dataset.pieValues).map(Number);
+  const barL  = JSON.parse(blob.dataset.barLabels);
+  const barV  = JSON.parse(blob.dataset.barValues).map(Number);
+
+  /* ---------- pie (status) ---------- */
+  new Chart(document.getElementById('pieChart'), {
+    type:'pie',
+    data:{labels:pieL,datasets:[{data:pieV}]},
+    options:{plugins:{title:{display:true,text:'Flight-status distribution',font:{size:18}},
+                      legend:{position:'bottom'}}}
+  });
+
+  /* ---------- bar (per-day) ---------- */
+  new Chart(document.getElementById('barChart'),{
+  type:'bar',
+  data:{labels:barL,
+        datasets:[{label:'Flights per day',data:barV}]},
+  options:{
+    aspectRatio: 1,                         // ← square canvas
+    plugins:{title:{display:true,text:'Flights per day',font:{size:18}}},
+    scales:{y:{beginAtZero:true,precision:0}}
+  }
+});
+})();
+</script>
+{% endblock %}

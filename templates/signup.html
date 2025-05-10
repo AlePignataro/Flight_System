@@ -1,0 +1,120 @@
+{# ── templates/signup.html ─────────────────────────────────────────── #}
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-3">Sign up</h2>
+
+<form method="post" id="signup-form" novalidate>
+  <!-- ── choose role ──────────────────────────────────────────────── -->
+  <div class="mb-3">
+    <label for="role" class="form-label">I am signing up as …</label>
+    <select id="role" name="role" class="form-select" required>
+      <option value="" selected hidden>Choose…</option>
+      <option value="customer">Customer</option>
+      <option value="agent">Booking agent</option>
+      <option value="staff">Airline staff</option>
+    </select>
+  </div>
+
+  <!-- ── fields common to every role ──────────────────────────────── -->
+  <div id="common-fields" class="d-none">
+    <div class="mb-3">
+      <label id="id-label" class="form-label">Username / email</label>
+      <input id="id-input" name="username" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <input name="password" type="password" class="form-control" required>
+    </div>
+  </div>
+
+  <!-- ── customer-only fields ─────────────────────────────────────── -->
+  <div id="customer-fields" class="role-fields d-none">
+    <div class="mb-3"><label>First name         <input  name="first_name"        class="form-control" required></label></div>
+    <div class="mb-3"><label>Middle name        <input  name="middle_name"       class="form-control"></label></div>
+    <div class="mb-3"><label>Last name          <input  name="last_name"         class="form-control" required></label></div>
+    <div class="mb-3"><label>State              <input  name="state"             class="form-control" required></label></div>
+    <div class="mb-3"><label>City               <input  name="city"              class="form-control" required></label></div>
+    <div class="mb-3"><label>Building / street  <input  name="building_name"     class="form-control" required></label></div>
+    <div class="mb-3"><label>ZIP code           <input  name="zip_code"          class="form-control" required></label></div>
+    <div class="mb-3"><label>Phone              <input  name="phone"             class="form-control" required></label></div>
+    <div class="mb-3"><label>Passport #         <input  name="passport_no"       class="form-control" required></label></div>
+    <div class="mb-3"><label>Passport country   <input  name="passport_country"  class="form-control" required></label></div>
+    <div class="mb-3"><label>Passport expiry    <input  name="passport_exp" type="date" class="form-control" required></label></div>
+    <div class="mb-3"><label>Date of birth      <input  name="dob"         type="date" class="form-control" required></label></div>
+  </div>
+
+  <!-- ── booking-agent-only fields ────────────────────────────────── -->
+  <div id="agent-fields" class="role-fields d-none">
+    <div class="mb-3"><label>Booking-agent ID   <input name="booking_agent_id" class="form-control" required></label></div>
+  </div>
+
+  <!-- ── airline-staff-only fields ────────────────────────────────── -->
+  <div id="staff-fields" class="role-fields d-none">
+    <div class="mb-3"><label>First name         <input name="first_name"     class="form-control" required></label></div>
+    <div class="mb-3"><label>Middle name        <input name="middle_name"    class="form-control"></label></div>
+    <div class="mb-3"><label>Last name          <input name="last_name"      class="form-control" required></label></div>
+    <div class="mb-3"><label>Airline            <input name="airline_name"   class="form-control" required></label></div>
+    <div class="mb-3"><label>Date of birth      <input name="dob" type="date" class="form-control" required></label></div>
+  </div>
+
+  <button id="submit-btn" type="submit" class="btn btn-primary mt-3 d-none">
+    Create account
+  </button>
+</form>
+
+<!-- ── role-switching script ───────────────────────────────────────── -->
+<script>
+/*                                                              *
+ *  Show / hide role-specific sections and keep hidden inputs
+ *  from being submitted (disabled = true).                     *
+ *                                                              */
+const roleSelect    = document.getElementById('role');
+const submitBtn     = document.getElementById('submit-btn');
+const commonFields  = document.getElementById('common-fields');
+const idLabel       = document.getElementById('id-label');
+const idInput       = document.getElementById('id-input');
+const roleSections  = document.querySelectorAll('.role-fields');
+
+function enable(section, yes = true) {
+  section.querySelectorAll('input,select').forEach(i => { i.disabled = !yes; });
+}
+
+function configureIdField(role) {
+  if (role === 'staff') {
+    idLabel.textContent = 'Username';
+    idInput.type        = 'text';
+    idInput.placeholder = 'Pick a unique username';
+  } else {                      // customer or agent
+    idLabel.textContent = 'Email';
+    idInput.type        = 'email';
+    idInput.placeholder = 'name@example.com';
+  }
+}
+
+roleSelect.addEventListener('change', ({ target: { value: role } }) => {
+
+  /* hide every role-specific block and disable its inputs */
+  roleSections.forEach(sec => {
+    sec.classList.add('d-none');
+    enable(sec, false);
+  });
+
+  if (role) {
+    /* show the shared block + chosen role block */
+    commonFields.classList.remove('d-none');
+    const chosen = document.getElementById(`${role}-fields`);
+    chosen.classList.remove('d-none');
+    enable(chosen, true);
+
+    submitBtn.classList.remove('d-none');
+    configureIdField(role);
+  } else {
+    /* no role selected → hide everything */
+    commonFields.classList.add('d-none');
+    submitBtn.classList.add('d-none');
+  }
+});
+</script>
+{% endblock %}

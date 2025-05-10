@@ -1,0 +1,71 @@
+{# ── templates/homepage.html ─────────────────────────────────────────── #}
+{% extends "base.html" %}
+{% block title %}Dashboard – Flight IQ{% endblock %}
+
+{% block content %}
+
+<header class="my-4">
+    {% if user_type == 'Customer' %}
+        <h2>Welcome, {{ first_name }} {{ last_name }}!</h2>
+    {% elif user_type == 'Booking Agent' %}
+        <h2>Booking-agent panel — {{ email }}</h2>
+        {% if airline_names %}
+            <p class="text-muted mb-0">
+                Approved airline{% if ',' in airline_names %}s{% endif %}:
+                {{ airline_names }}
+            </p>
+        {% endif %}
+    {% elif user_type == 'Airline Staff' %}
+        <h2>Welcome, {{ first_name }} {{ last_name }}</h2>
+        <p class="text-muted mb-0">Airline: {{ airline_name }}</p>
+    {% endif %}
+</header>
+
+{% for cat, msg in get_flashed_messages(with_categories=True) %}
+  <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }}">{{ msg }}</div>
+{% endfor %}
+
+<nav class="mt-3 d-flex flex-wrap gap-2">
+  {% if user_type == 'Customer' %}
+      <a class="btn btn-outline-secondary" href="{{ url_for('customer_past_flights') }}">Past flights</a>
+      <a class="btn btn-secondary" href="{{ url_for('customer_spending') }}">Track spending</a>
+  {% elif user_type == 'Booking Agent' %}
+      {% if airline_names %}       
+          <a class="btn btn-outline-primary" href="{{ url_for('agent_flight_search') }}">Search / Book ticket</a>
+          <a class="btn btn-outline-primary" href="{{ url_for('agent_past_flights') }}">Past flights</a>
+          <a class="btn btn-outline-primary" href="{{ url_for('agent_commission') }}">Commission</a>
+          <a class="btn btn-outline-primary" href="{{ url_for('agent_top_customers') }}">Top customers</a>
+      {% endif %}
+  {% elif user_type == 'Airline Staff' %}
+      <a class="btn btn-outline-primary" href="{{ url_for('staff_flights') }}">My flights</a>
+      <a class="btn btn-outline-primary" href="{{ url_for('staff_analytics') }}">Analytics</a>
+      <a class="btn btn-outline-primary" href="{{ url_for('staff_view_booking_agents') }}">Booking agents</a>
+      <a class="btn btn-outline-primary" href="{{ url_for('staff_customers') }}">Customers</a>
+      {% if 'Admin' in permissions %}
+          <a class="btn btn-success" href="{{ url_for('staff_new_flight') }}">+ Create flight</a>
+          <a class="btn btn-success" href="{{ url_for('staff_add_airplane') }}">+ Add airplane</a>
+          <a class="btn btn-success" href="{{ url_for('staff_add_airport') }}">+ Add airport</a>
+          <a class="btn btn-success" href="{{ url_for('staff_manage_permissions') }}">+ Manage permissions</a>
+      {% endif %}
+  {% endif %}
+</nav>
+
+{# ── collapsible filter only for Customer (redirects to /customer/flight_search) #}
+{% if user_type == 'Customer' %}
+    {% include "partials/customer_filters.html" %}
+{% elif user_type == 'Booking Agent' %}
+    {% include "partials/agent_filters.html" %}
+{% elif user_type == 'Airline Staff' %}
+    {% include "partials/staff_filters.html" %}
+{% endif %}
+
+<section class="mt-4">
+  {% set rows = upcoming_flights %}
+  {% if user_type == 'Airline Staff' and is_operator %}
+      {% include "partials/flight_table_airline_staff_with_change_status.html" %}
+  {% else %}
+      {% include "partials/flight_table.html" %}
+  {% endif %}
+</section>
+
+{% endblock %}

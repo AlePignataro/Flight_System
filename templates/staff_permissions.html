@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Staff Permissions – Flight IQ{% endblock %}
+
+{% block content %}
+<header class="my-4">
+    <h2>Staff Permissions Management</h2>
+    <p class="text-muted mb-0">Grant or revoke permissions for airline staff members</p>
+</header>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Manage Staff Permissions</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <p><strong>Permission Types:</strong></p>
+            <ul>
+                <li><strong>Admin:</strong> Can create flights, add airplanes, add airports, add booking agents, and grant permissions</li>
+                <li><strong>Operator:</strong> Can change flight status</li>
+                <li><strong>Admin & Operator:</strong> Has both Admin and Operator permissions</li>
+                <li><strong>None:</strong> No special permissions</li>
+            </ul>
+        </div>
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Current Role</th>
+                    <th>Update Permission</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for staff in staff_members %}
+                <tr>
+                    <td>{{ staff.Username }}</td>
+                    <td>{{ staff.First_Name }} {{ staff.Last_Name }}</td>
+                    <td>
+                        <span class="badge {% if staff.Permission == 'Admin' %}bg-danger{% elif staff.Permission == 'Operator' %}bg-warning text-dark{% elif staff.Permission == 'Admin & Operator' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ staff.Permission or "None" }}
+                        </span>
+                    </td>
+                    <td>
+                        <form method="POST" class="d-flex">
+                            <input type="hidden" name="username" value="{{ staff.Username }}">
+                            <select name="new_role" class="form-select form-select-sm me-2" style="width: auto;">
+                                <option value="">Select Role</option>
+                                {% for role in permission_roles %}
+                                <option value="{{ role }}">{{ role or "None" }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" name="update_permission" value="1" class="btn btn-sm btn-primary">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Permission Distribution</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="permissionChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Calculate permission distribution
+    const permissions = {
+        'Admin': 0,
+        'Operator': 0,
+        'Admin & Operator': 0,
+        'None': 0
+    };
+    
+    {% for staff in staff_members %}
+        {% if staff.Permission %}
+            permissions['{{ staff.Permission }}']++;
+        {% else %}
+            permissions['None']++;
+        {% endif %}
+    {% endfor %}
+    
+    // Permission Distribution Chart
+    const permissionCtx = document.getElementById('permissionChart').getContext('2d');
+    const permissionChart = new Chart(permissionCtx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(permissions),
+            datasets: [{
+                label: 'Permission Distribution',
+                data: Object.values(permissions),
+                backgroundColor: [
+                    'rgba(220, 53, 69, 0.7)',    // Admin - danger
+                    'rgba(255, 193, 7, 0.7)',    // Operator - warning
+                    'rgba(25, 135, 84, 0.7)',    // Admin & Operator - success
+                    'rgba(108, 117, 125, 0.7)'   // None - secondary
+                ],
+                borderWidth: 1
+            }]
+        }
+    });
+</script>
+{% endblock %}

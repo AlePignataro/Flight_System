@@ -1,0 +1,68 @@
+{# partials/agent_filters.html #}
+<div class="card mt-4">
+  <div class="card-body">
+    <h5 class="card-title">Filter my past affiliated flights</h5>
+
+    <form class="row gy-2 gx-3 align-items-end"
+          action="{{ url_for('agent_past_flights') }}"   {# correct endpoint #}
+          method="POST">
+
+      {# Start / End date – unchanged #}
+      <div class="col-auto">
+        <label for="start" class="form-label mb-0">Start&nbsp;date</label>
+        <input type="date" id="start" name="start" class="form-control"
+               value="{{ start|default('') }}">
+      </div>
+
+      <div class="col-auto">
+        <label for="end" class="form-label mb-0">End&nbsp;date</label>
+        <input type="date" id="end" name="end" class="form-control"
+               value="{{ end|default('') }}">
+      </div>
+
+      {# Departure airport #}
+      <div class="col-auto">
+        <label for="dep" class="form-label mb-0">Departure&nbsp;airport</label>
+        <select id="dep" name="departure_airport" class="form-select">
+          <option value="all">All</option>  {# lowercase to match back-end #}
+          {% for ap in departure_airports %}
+              <option value="{{ ap }}"
+                      {% if ap == request.form.departure_airport %}selected{% endif %}>
+                  {{ ap }}
+              </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# Arrival airport #}
+      <div class="col-auto">
+        <label for="arr" class="form-label mb-0">Arrival&nbsp;airport</label>
+        <select id="arr" name="arrival_airport" class="form-select">
+          <option value="all">All</option>
+          {% for ap in arrival_airports %}
+              <option value="{{ ap }}"
+                      {% if ap == request.form.arrival_airport %}selected{% endif %}>
+                  {{ ap }}
+              </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# Customer e-mail – unchanged #}
+      <div class="col-auto">
+        <label for="cust" class="form-label mb-0">Customer&nbsp;e-mail</label>
+        <input type="email" id="cust" name="customer_email"
+               class="form-control"
+               value="{{ customer_email|default('') }}">
+      </div>
+
+      <div class="col-auto">
+        <button class="btn btn-primary">Search</button>
+      </div>
+    </form>
+
+    {% if error %}
+      <p class="text-danger mt-2"><strong>Warning:</strong> {{ error }}</p>
+    {% endif %}
+  </div>
+</div>

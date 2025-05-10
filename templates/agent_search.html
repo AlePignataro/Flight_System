@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Book for Customer – Flight IQ{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">Book a flight for a customer</h1>
+
+{# ─── Filter card ──────────────────────────────────────────────── #}
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h2 class="h4">Search flights</h2>
+    <p class="text-muted mb-3">Specify <em>at least one</em> criterion.</p>
+
+    <form action="{{ url_for('agent_flight_search') }}" method="POST"
+          class="row row-cols-lg-auto g-3 align-items-end">
+
+      {# customer e-mail with autocomplete #}
+      <div class="col-12">
+        <label for="customer_email" class="form-label">Customer&nbsp;e-mail</label>
+        <input id="customer_email" name="customer_email" type="email"
+               class="form-control" list="past_customers" required
+               value="{{ customer_email|default('') }}">
+        <datalist id="past_customers">
+          {% for em in past_customers %}
+            <option value="{{ em }}">
+          {% endfor %}
+        </datalist>
+      </div>
+
+      {# departure airport #}
+      <div class="col-12">
+        <label for="departure_airport" class="form-label">Departure&nbsp;airport</label>
+        <select id="departure_airport" name="departure_airport" class="form-select">
+          <option value="all">All</option>
+          {% for ap in departure_airports %}
+            <option value="{{ ap }}">{{ ap }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# arrival airport #}
+      <div class="col-12">
+        <label for="arrival_airport" class="form-label">Arrival&nbsp;airport</label>
+        <select id="arrival_airport" name="arrival_airport" class="form-select">
+          <option value="all">All</option>
+          {% for ap in arrival_airports %}
+            <option value="{{ ap }}">{{ ap }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# date #}
+      <div class="col-12">
+        <label for="date" class="form-label">Date</label>
+        <input type="date" id="date" name="date" class="form-control"
+               min="2022-01-01">
+      </div>
+
+      {# buttons #}
+      <div class="col-12">
+        <button class="btn btn-primary">Search</button>
+        <a href="{{ url_for('home') }}" class="btn btn-secondary">Go&nbsp;Back</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ─── Results table ───────────────────────────────────────────── #}
+{% if table_content %}
+  <h2 class="h4">Search results</h2>
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Airline</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Seats&nbsp;left</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in table_content %}
+        <tr>
+          <td>{{ r.Airline }}</td>
+
+          {# From #}
+          <td>
+            <strong>{{ r.Dep_City }} ({{ r.Departure_Airport }})</strong><br>
+            <small>{{ r.Departure_Date }} {{ r.Departure_Time }}</small>
+          </td>
+
+          {# To #}
+          <td>
+            <strong>{{ r.Arr_City }} ({{ r.Arrival_Airport }})</strong><br>
+            <small>{{ r.Arrival_Date }} {{ r.Arrival_Time }}</small>
+          </td>
+
+          <td>{{ r.Seats_Left }}</td>
+
+          <td>
+            {% if r.Seats_Left > 0 %}
+              <form method="POST"
+                    action="{{ url_for('agent_purchase',
+                                       airline=r.Airline,
+                                       flight_id=r.Flight_ID) }}"
+                    class="m-0">
+                <input type="hidden" name="customer_email" value="{{ customer_email }}">
+                <button class="btn btn-success btn-sm">Purchase</button>
+              </form>
+            {% else %}
+              <button class="btn btn-secondary btn-sm" disabled>Sold out</button>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% elif request.method == 'POST' %}
+  <p class="text-danger"><strong>No flights match your search.</strong></p>
+{% endif %}
+
+{% if error %}
+  <p class="text-danger mt-3"><strong>Error:</strong> {{ error }}</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,275 @@
+{# ─── templates/staff_analytics.html — compact two-row filter ─── #}
+{% extends "base.html" %}
+{% block title %}Airline analytics{% endblock %}
+
+{% block head %}
+  <style>
+    /* ───────── CARD + TYPOGRAPHY ───────── */
+    .card-chart          { height:100%; }
+    .card-chart canvas   { width:100%!important; }
+    .card-chart h6       { font-size:1rem; margin-bottom:1rem; }
+
+    .summary-card h3     { font-size:2.25rem; margin-bottom:.25rem; }
+    .summary-metric      { font-size:.95rem; color:#6c757d; }
+
+    /* ───────── FILTER INPUT SIZE ───────── */
+    .dash-form .form-control {
+        width:100%;
+        max-width:190px;      /* ### ADJUST width of each input */
+    }
+
+    /* ───────── COMPACT PADDING / GAP ───── */
+    .filter-card, .summary-card { padding:1.25rem 1.5rem!important; } /* default p-4 → p-3 */
+    .dash-form.row.g-3          { row-gap:.75rem!important; }        /* tighten vertical gap */
+
+    .nodata              { text-align:center; padding:3rem 0; color:#6c757d; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Airline analytics</h2>
+
+{# ───────── Header with two aligned cards ───────── #}
+<div class="row g-4 mb-5">
+
+  <!-- FILTER: 7 / 12 columns on large screens -->
+  <div class="col-12 col-lg-7">
+    <div class="card shadow-sm h-100 filter-card">
+      <h5 class="mb-3">Filter</h5>
+
+      <!-- TWO-ROW GRID: row-cols-md-2 gives two cols per row ≥ md -->
+      <form method="get" class="row row-cols-1 row-cols-md-2 g-3 dash-form">
+
+        <!-- From -->
+        <div>
+          <label class="form-label mb-0" for="start">From</label>
+          <input type="date" id="start" name="start"
+                 class="form-control" value="{{ start.isoformat() }}">
+        </div>
+
+        <!-- To -->
+        <div>
+          <label class="form-label mb-0" for="end">To</label>
+          <input type="date" id="end" name="end"
+                 class="form-control" value="{{ end.isoformat() }}">
+        </div>
+
+        <!-- Top-N destinations -->
+        <div>
+          <label class="form-label mb-0" for="dest_limit">Top-N destinations</label>
+          <input type="number" min="1" id="dest_limit" name="dest_limit"
+                 class="form-control" value="{{ dest_limit }}">
+        </div>
+
+        <!-- Top-N customers -->
+        <div>
+          <label class="form-label mb-0" for="cust_limit">Top-N customers</label>
+          <input type="number" min="1" id="cust_limit" name="cust_limit"
+                 class="form-control" value="{{ cust_limit }}">
+        </div>
+
+        <div class="col-12">
+          <button class="btn btn-primary">Apply</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SUMMARY: 5 / 12 columns -->
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm h-100 summary-card text-center">
+      <h5 class="mb-3">Summary ({{ start }} → {{ end }})</h5>
+
+      <h3>${{ '%.2f'|format(summary.total_rev or 0) }}</h3>
+      <div class="summary-metric mb-3">gross revenue</div>
+
+      <div class="row">
+        <div class="col-6 border-end">
+          <h3>{{ (summary.total_tix or 0)|int }}</h3>
+          <div class="summary-metric">tickets sold</div>
+        </div>
+        <div class="col-6">
+          <h3>{{ (summary.agent_tix or 0)|int }}</h3>
+          <div class="summary-metric">via booking agents</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{# ───── charts grid (2 × 3) — bar-charts 380 px ─────────────────────── #}
+<div class="row g-4">
+
+  <!-- 1 · monthly revenue -->
+  <div class="col-12 col-md-6">
+    <div class="card p-4 shadow-sm card-chart">
+      <h6 class="text-center">Revenue by month <small class="text-muted">(direct vs agent)</small></h6>
+      <canvas id="monthlyChart" height="380" class="d-none"></canvas>
+      <div   id="monthlyChart-empty" class="nodata d-none">No sales</div>
+    </div>
+  </div>
+
+  <!-- 2 · revenue by destination -->
+  <div class="col-12 col-md-6">
+    <div class="card p-4 shadow-sm card-chart">
+      <h6 class="text-center">
+        Revenue by destination
+        <small class="text-muted">(top&nbsp;{{ dest_revenue|length }})</small>
+      </h6>
+      <canvas id="destChart" height="380" class="d-none"></canvas>
+      <div   id="destChart-empty" class="nodata d-none">No sales</div>
+    </div>
+  </div>
+
+  <!-- 3 · top destinations – last 3 months -->
+  <div class="col-12 col-md-6">
+    <div class="card p-4 shadow-sm card-chart">
+      <h6 class="text-center">Top destinations – last 3 months</h6>
+      <canvas id="top3mChart" height="380" class="d-none"></canvas>
+      <div   id="top3mChart-empty" class="nodata d-none">No sales</div>
+    </div>
+  </div>
+
+  <!-- 4 · top destinations – last year -->
+  <div class="col-12 col-md-6">
+    <div class="card p-4 shadow-sm card-chart">
+      <h6 class="text-center">Top destinations – last year</h6>
+      <canvas id="top1yChart" height="380" class="d-none"></canvas>
+      <div   id="top1yChart-empty" class="nodata d-none">No sales</div>
+    </div>
+  </div>
+
+  <!-- 5 · flights of top-N customers / month -->
+  <div class="col-12 col-md-6">
+    <div class="card p-4 shadow-sm card-chart">
+      <h6 class="text-center">
+        Flights of top&nbsp;{{ cust_limit }} customers / month
+      </h6>
+      <canvas id="custMonthChart" height="402" class="d-none"></canvas>
+      <div   id="custMonthChart-empty" class="nodata d-none">No data</div>
+    </div>
+  </div>
+
+  <!-- 6 · scheduled flights next 2 months (pie) -->
+  <div class="col-12 col-md-6">
+    <div class="card p-4 shadow-sm card-chart">
+      <h6 class="text-center">Flights scheduled – next 2 months</h6>
+      <canvas id="schedPie" height="160" class="d-none"></canvas>
+      <div   id="schedPie-empty" class="nodata d-none">No flights</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{# ── JSON blobs ─────────────────────────────────────────────────────── #}
+{% block scripts %}
+<script id="monthly-data" type="application/json">
+  {{ monthly_rev | tojson | safe }}
+</script>
+<script id="dest-data" type="application/json">
+  {{ dest_revenue | tojson | safe }}
+</script>
+<script id="custmonth-data" type="application/json">
+  {{ top_cust_rows | tojson | safe }}
+</script>
+<script id="sched-data" type="application/json">
+  {{ sched_rows | tojson | safe }}
+</script>
+<script id="top3m-data" type="application/json">
+  {{ top_3m | tojson | safe }}
+</script>
+<script id="top1y-data" type="application/json">
+  {{ top_1y | tojson | safe }}
+</script>
+
+<script type="module">
+(async () => {
+  await import("https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js");
+
+  const PAL  = ["#0d6efd","#fd7e14","#20c997","#6610f2",
+                "#198754","#ffc107","#dc3545","#6c757d"];
+  const col  = i => PAL[i % PAL.length];
+  const data = id => JSON.parse(document.getElementById(id).textContent || "[]");
+
+  const show = id => { const el=document.getElementById(id);
+                       el.classList.remove("d-none");
+                       el.style.removeProperty("display"); return el; };
+  const badge = id => document.getElementById(id)?.classList.remove("d-none");
+
+  const stacked = (ctx,l,a,b,la,lb,ca,cb) =>
+    new Chart(ctx,{type:"bar",
+      data:{labels:l,datasets:[
+        {label:la,data:a,backgroundColor:ca,borderWidth:0},
+        {label:lb,data:b,backgroundColor:cb,borderWidth:0}]},
+      options:{responsive:true,
+        scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}},
+        plugins:{legend:{position:"bottom"}}}});
+
+  /* monthly revenue */
+  (() => {
+    const r=data("monthly-data"), l=r.map(x=>x.yr_mon),
+          d=r.map(x=>x.direct_rev), a=r.map(x=>x.agent_rev);
+    if(!(l.length&&(d.some(Boolean)||a.some(Boolean)))) return badge("monthlyChart-empty");
+    stacked(show("monthlyChart"),l,d,a,"Direct","Agent",col(0),col(1));
+  })();
+
+  /* dest revenue */
+  (() => {
+    const r=data("dest-data"), l=r.map(x=>x.airport),
+          d=r.map(x=>x.direct_rev), a=r.map(x=>x.agent_rev);
+    if(!(l.length&&(d.some(Boolean)||a.some(Boolean)))) return badge("destChart-empty");
+    stacked(show("destChart"),l,d,a,"Direct","Agent",col(2),col(3));
+  })();
+
+  /* flights of top-N customers / month */
+  (() => {
+    const rows=data("custmonth-data");
+    if(!rows.length) return badge("custMonthChart-empty");
+
+    /* collect distinct months + customers */
+    const months=[...new Set(rows.map(r=>r.yr_mon))].sort();
+    const custs=[...new Set(rows.map(r=>r.customer))].slice(0,{{ cust_limit }});
+
+    const ds=custs.map((c,i)=>({
+      label:c,data:months.map(m=>{
+        const hit=rows.find(r=>r.customer===c&&r.yr_mon===m);
+        return hit?hit.flights:0;
+      }),backgroundColor:col(i),borderWidth:0}));
+
+    const ctx=show("custMonthChart");
+    if(!ds.some(d=>d.data.some(Boolean))) return badge("custMonthChart-empty");
+
+    new Chart(ctx,{type:"bar",
+      data:{labels:months,datasets:ds},
+      options:{responsive:true,scales:{x:{stacked:true},
+        y:{stacked:true,beginAtZero:true,ticks:{precision:0}}},
+        plugins:{legend:{position:"bottom"}}}});
+  })();
+
+  /* scheduled flights next 2 mo – pie */
+  (() => {
+    const r=data("sched-data");
+    if(!r.length) return badge("schedPie-empty");
+
+    const l=r.map(x=>x.airport), v=r.map(x=>x.cnt);
+    if(!v.some(Boolean)) return badge("schedPie-empty");
+
+    new Chart(show("schedPie"),{type:"pie",
+      data:{labels:l,datasets:[{data:v,backgroundColor:l.map((_,i)=>col(i))}]},
+      options:{responsive:true,plugins:{legend:{position:"bottom"}}}});
+  })();
+
+  /* helper for top charts */
+  const top = (tag,cvs,empty,ca,cb) => {
+    const r=data(tag); if(!r.length) return badge(empty);
+    const l=r.map(x=>x.airport), d=r.map(x=>x.direct_rev), a=r.map(x=>x.agent_rev);
+    if(!(d.some(Boolean)||a.some(Boolean))) return badge(empty);
+    stacked(show(cvs),l,d,a,"Direct","Agent",ca,cb);
+  };
+  top("top3m-data","top3mChart","top3mChart-empty",col(4),col(5));
+  top("top1y-data","top1yChart","top1yChart-empty",col(6),col(7));
+
+})();
+</script>
+{% endblock %}

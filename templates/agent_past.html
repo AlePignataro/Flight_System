@@ -1,0 +1,109 @@
+{# templates/agent_past.html #}
+{% extends "base.html" %}
+{% block title %}Past Sales – Flight IQ{% endblock %}
+
+{% block content %}
+  <div class="title">
+      <h1>Past Flights You Sold</h1>
+      <p class="subtitle">Review your booking history</p>
+  </div>
+
+  {# ─── Filter card ──────────────────────────────────────────────── #}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5">Filter flights</h2>
+
+      <form method="POST" class="row gy-2 gx-3 align-items-end">
+
+        {# dates #}
+        <div class="col-auto">
+          <label for="start" class="form-label mb-0">Start&nbsp;date</label>
+          <input type="date" id="start" name="start" class="form-control"
+                 value="{{ start|default('') }}">
+        </div>
+
+        <div class="col-auto">
+          <label for="end" class="form-label mb-0">End&nbsp;date</label>
+          <input type="date" id="end" name="end" class="form-control"
+                 value="{{ end|default('') }}">
+        </div>
+
+        {# departure airport #}
+        <div class="col-auto">
+          <label for="dep" class="form-label mb-0">Departure&nbsp;airport</label>
+          <select id="dep" name="departure_airport" class="form-select">
+            <option value="all">All</option>
+            {% for ap in departure_airports %}
+              <option value="{{ ap }}"
+                      {% if ap == request.form.departure_airport %}selected{% endif %}>
+                {{ ap }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {# arrival airport #}
+        <div class="col-auto">
+          <label for="arr" class="form-label mb-0">Arrival&nbsp;airport</label>
+          <select id="arr" name="arrival_airport" class="form-select">
+            <option value="all">All</option>
+            {% for ap in arrival_airports %}
+              <option value="{{ ap }}"
+                      {% if ap == request.form.arrival_airport %}selected{% endif %}>
+                {{ ap }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {# customer e-mail (autocomplete) #}
+        <div class="col-auto">
+          <label for="cust" class="form-label mb-0">Customer&nbsp;e-mail</label>
+          <input list="past_customers" id="cust" name="customer_email"
+                 class="form-control" value="{{ customer_email|default('') }}">
+          <datalist id="past_customers">
+            {% for em in past_customers %}
+              <option value="{{ em }}">
+            {% endfor %}
+          </datalist>
+        </div>
+
+        <div class="col-auto">
+          <button class="btn btn-primary">Filter</button>
+        </div>
+      </form>
+
+      {% if error %}
+        <p class="text-danger mt-2"><strong>Warning:</strong> {{ error }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ─── Results ────────────────────────────────────────────────── #}
+  {% if flights %}
+    <h2>Results</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Customer</th><th>Airline</th><th>Flight&nbsp;#</th>
+          <th>Departure</th><th>Arrival</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in flights %}
+          <tr>
+            <td>{{ f.Customer_Email }}</td>
+            <td>{{ f.Airline }}</td>
+            <td>{{ f.Flight_ID }}</td>
+            <td>{{ f.Departure_Airport }} {{ f.Departure_Date }}</td>
+            <td>{{ f.Arrival_Airport }} {{ f.Arrival_Date }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% elif request.method == 'POST' %}
+    <p>No flights match your criteria.</p>
+  {% else %}
+    <p>You haven’t sold any flights yet.</p>
+  {% endif %}
+{% endblock %}

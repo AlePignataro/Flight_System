@@ -1,0 +1,143 @@
+{# templates/customer_spending.html #}
+{% extends "base.html" %}
+{% block title %}Spending{% endblock %}
+
+{% block extra_css %}
+{{ super() }}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/customer_spending.css') }}">
+{% endblock %}
+
+{% block content %}
+<h3 class="mb-3">Spending summary</h3>
+
+<!-- ── ROW: search form (8/12) + overview (4/12) ─────────────────── -->
+<div class="row g-3 mb-4">
+  <!-- search form --------------------------------------------------- -->
+  <div class="col-lg-8">
+    <form class="card p-3 h-100" method="POST" novalidate>
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-5">
+          <label for="start" class="form-label mb-0">Start&nbsp;date</label>
+          <input id="start" name="start" type="date" required
+                 class="form-control"
+                 value="{{ start.strftime('%Y-%m-%d') }}">
+        </div>
+        <div class="col-sm-5">
+          <label for="end" class="form-label mb-0">End&nbsp;date</label>
+          <input id="end" name="end" type="date" required
+                 class="form-control"
+                 value="{{ end.strftime('%Y-%m-%d') }}">
+        </div>
+        <div class="col-sm-2 d-grid">
+          <button class="btn btn-primary">Show</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- overview card -------------------------------------------------- -->
+  <div class="col-lg-4">
+    <div class="card p-3 h-100">
+      <div class="fw-bold mb-2">Overview</div>
+
+      <div>Total spend:
+        <span class="fw-bold">${{ '%.2f' % total_spend }}</span>
+      </div>
+      <div>Commission paid:
+        <span class="fw-bold">${{ '%.2f' % commission_total }}</span>
+      </div>
+      <div class="text-muted small">
+        (direct ${{ '%.2f' % direct_spend }},
+         via agent ${{ '%.2f' % agent_spend }})
+      </div>
+
+      <hr class="my-2">
+
+      <div>Total tickets:
+        <span class="fw-bold">{{ total_tix }}</span>
+      </div>
+      <div class="text-muted small">
+        (direct {{ direct_tix }}, via agent {{ agent_tix }})
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ROW: charts fixed side-by-side ────────────────────────────── -->
+<div class="chart-row">
+  <div class="chart-box"><canvas id="pieChart"></canvas></div>
+  <div class="chart-box"><canvas id="barChart"></canvas></div>
+</div>
+
+<!-- ── table of individual tickets ───────────────────────────────── -->
+{% if rows %}
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>Airline</th>
+      <th>Flight&nbsp;#</th>
+      <th>Departure&nbsp;Date</th>
+      <th>Price&nbsp;($)</th>
+      <th>Commission&nbsp;($)</th>
+      <th>Paid&nbsp;($)</th>
+      <th>Agent&nbsp;ID</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.Airline }}</td>
+      <td>{{ r.Flight_ID }}</td>
+      <td>{{ r.Departure_Date }}</td>
+      <td>{{ '%.2f' % r.Price }}</td>
+      <td>{{ '%.2f' % r.Commission }}</td>
+      <td>{{ '%.2f' % r.Paid }}</td>
+      <td>{{ r.Agent_ID or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<span id="data" hidden
+      data-pie-labels='{{ pie_labels|tojson|safe }}'
+      data-pie-values='{{ pie_values|tojson|safe }}'
+      data-bar-labels='{{ bar_labels|tojson|safe }}'
+      data-bar-values='{{ bar_values|tojson|safe }}'></span>
+
+<script>
+(() => {
+  const cfg  = document.getElementById('data');
+  const pieL = JSON.parse(cfg.dataset.pieLabels);
+  const pieV = JSON.parse(cfg.dataset.pieValues).map(Number);
+  const barL = JSON.parse(cfg.dataset.barLabels);
+  const barV = JSON.parse(cfg.dataset.barValues).map(Number);
+
+  /* pie – spending by airline (paid amounts) */
+  new Chart(document.getElementById('pieChart'), {
+    type:'pie',
+    data:{labels:pieL,datasets:[{data:pieV}]},
+    options:{plugins:{
+      title:{display:true,text:'Spending by Airline',font:{size:18}},
+      legend:{position:'bottom'}
+    }}
+  });
+
+  /* bar – spending per month (paid amounts) */
+  new Chart(document.getElementById('barChart'), {
+    type:'bar',
+    data:{labels:barL,datasets:[{label:'Spend ($)',data:barV}]},
+    options:{
+      aspectRatio:1,
+      plugins:{title:{display:true,text:'Spending per Month',font:{size:18}}},
+      scales:{y:{beginAtZero:true}}
+    }
+  });
+})();
+</script>
+{% endblock %}

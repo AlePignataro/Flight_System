@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Staff · Add airplane{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Add airplane</h2>
+
+<form method="post" class="row g-3">
+  <div class="col-md-6">
+    <label class="form-label">Plane ID</label>
+    <input name="plane_id" class="form-control" required>
+  </div>
+
+  <div class="col-md-6">
+    <label class="form-label">Number of seats</label>
+    <input name="seats" type="number" class="form-control" required>
+  </div>
+
+  <div class="col-12">
+    <button class="btn btn-primary">Add airplane</button>
+  </div>
+</form>
+{% endblock %}

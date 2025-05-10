@@ -1,0 +1,127 @@
+/* General styles for the body */
+body {
+    font-family: Arial, sans-serif; /* Sets the font of the entire body to Arial or sans-serif */
+    background-color: #f4f4f9; /* Sets a light gray background color for the page */
+    margin: 0; /* Removes default margin around the body */
+    padding: 0; /* Removes default padding around the body */
+}
+
+/* Navbar styles */
+.navbar {
+    background-color: #007bff; /* Sets the background color of the navbar to blue */
+    padding: 15px; /* Adds 15px padding inside the navbar */
+    display: flex; /* Makes the navbar a flex container for easy alignment */
+    justify-content: space-between; /* Aligns items to the left and right edges of the navbar */
+    align-items: center; /* Vertically centers items within the navbar */
+}
+
+.navbar img {
+    height: 40px; /* Sets the height of the navbar logo image to 40px */
+}
+
+.navbar a {
+    color: white; /* Sets the text color of navbar links to white */
+    text-decoration: none; /* Removes the underline from navbar links */
+    font-size: 1.1em; /* Sets the font size of navbar links to 1.1 times the normal size */
+    margin-left: 20px; /* Adds 20px space to the left of each navbar link */
+}
+
+.navbar a:hover {
+    text-decoration: underline; /* Underlines navbar links when hovered */
+}
+
+/* Container for all pages */
+.container {
+    width: 80%; /* Sets the width of the container to 80% of the page width */
+    margin: 0 auto; /* Centers the container horizontally */
+    padding: 20px; /* Adds 20px padding inside the container */
+}
+
+/* Title and subtitle styles */
+.title {
+    text-align: center; /* Centers the text of the title */
+    margin-bottom: 20px; /* Adds 20px margin below the title */
+}
+
+.title h1 {
+    font-size: 3em; /* Sets the font size of the main title to 3 times the normal size */
+    color: #333; /* Sets the color of the title text to dark gray */
+}
+
+.title p {
+    font-size: 1.2em; /* Sets the font size of the subtitle to 1.2 times the normal size */
+    color: #555; /* Sets the color of the subtitle text to light gray */
+}
+
+/* Login Box */
+.login-box {
+    background-color: white; /* Sets the background color of the login box to white */
+    padding: 30px; /* Adds 30px padding inside the login box */
+    border-radius: 8px; /* Rounds the corners of the login box */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow around the login box */
+    width: 350px; /* Sets the width of the login box to 350px */
+    margin: 100px auto; /* Centers the login box vertically with 100px margin from the top */
+    display: flex; /* Makes the login box a flex container */
+    flex-direction: column; /* Arranges the child elements in a column */
+    align-items: center; /* Centers the child elements horizontally */
+}
+
+h2 {
+    text-align: center; /* Centers the heading inside the login box */
+    color: #333; /* Sets the color of the heading text to dark gray */
+}
+
+/* Input groups */
+.input-group {
+    margin-bottom: 20px; /* Adds 20px space below each input group */
+}
+
+.input-group label {
+    display: block; /* Makes the label a block-level element */
+    color: #333; /* Sets the color of the label text to dark gray */
+    margin-bottom: 5px; /* Adds 5px space below the label */
+}
+
+.input-group input,
+.input-group select {
+    width: 100%; /* Makes the input fields and select dropdowns take the full width */
+    padding: 12px; /* Adds 12px padding inside the input fields */
+    font-size: 16px; /* Sets the font size inside the input fields to 16px */
+    border: 1px solid #ccc; /* Adds a light gray border around the input fields */
+    border-radius: 5px; /* Rounds the corners of the input fields */
+    box-sizing: border-box; /* Ensures padding is included in the width calculation */
+}
+
+/* Buttons */
+.btn {
+    width: 100%; /* Makes the button take the full width of the container */
+    padding: 12px; /* Adds 12px padding inside the button */
+    font-size: 16px; /* Sets the font size of the button text to 16px */
+    background-color: #007bff; /* Sets the background color of the button to blue */
+    color: white; /* Sets the text color of the button to white */
+    border: none; /* Removes the border around the button */
+    border-radius: 5px; /* Rounds the corners of the button */
+    cursor: pointer; /* Changes the cursor to a pointer when hovering over the button */
+}
+
+.btn:hover {
+    background-color: #0056b3; /* Changes the button's background color to dark blue when hovered */
+}
+
+/* Error message */
+.error-message {
+    color: red; /* Sets the color of the error message text to red */
+    text-align: center; /* Centers the error message text */
+    margin-top: 10px; /* Adds 10px space above the error message */
+}
+
+/* Register link styles */
+.register-link {
+    text-align: center; /* Centers the "Don't have an account?" text */
+    margin-top: 15px; /* Adds 15px space above the register link */
+}
+
+.register-link a {
+    text-decoration: none; /* Removes the underline from the register link */
+    color: #007bff; /* Sets the color of the register link to blue */
+}

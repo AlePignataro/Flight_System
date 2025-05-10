@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Logged out{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height:60vh">
+  <div class="text-center">
+    <h1 class="display-4 fw-bold mb-3">Flight&nbsp;IQ</h1>
+    <p class="lead">Good-bye&nbsp;— thanks for choosing Flight&nbsp;IQ!</p>
+    <a class="btn btn-primary mt-3" href="{{ url_for('login') }}">Log&nbsp;in&nbsp;again</a>
+  </div>
+</div>
+{% endblock %}

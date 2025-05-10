@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Staff · Passengers{% endblock %}
+
+{% block content %}
+<h2 class="mb-3">Passengers - flight {{ flight_id }}</h2>
+
+{% if passengers %}
+<ul class="list-group">
+  {% for p in passengers %}
+    <li class="list-group-item">{{ p }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No passengers for this flight.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,40 @@
+{% if rows %}
+  {# Figure out which optional columns exist in this dataset #}
+  {% set has_customer = 'Customer_Email' in rows[0] %}
+  {% set has_seats    = 'Seats_Left'     in rows[0] %}
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Airline</th>
+          <th>Flight&nbsp;#</th>
+          <th>Departure&nbsp;Airport</th>
+          <th>Departure&nbsp;Time</th>
+          <th>Arrival&nbsp;Airport</th>
+          <th>Arrival&nbsp;Time</th>
+          <th>Status</th>
+          {% if has_seats    %}<th>Seats&nbsp;left</th>{% endif %}
+          {% if has_customer %}<th>Customer&nbsp;Email</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.Airline }}</td>
+          <td>{{ r.Flight_ID }}</td>
+          <td>{{ r.Departure_Airport }}</td>
+          <td>{{ r.Departure_Time }}</td>
+          <td>{{ r.Arrival_Airport }}</td>
+          <td>{{ r.Arrival_Time }}</td>
+          <td>{{ r.Status_ }}</td>
+          {% if has_seats    %}<td>{{ r.Seats_Left|default('—') }}</td>{% endif %}
+          {% if has_customer %}<td>{{ r.Customer_Email }}</td>{% endif %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p class="text-muted">No matching flights.</p>
+{% endif %}

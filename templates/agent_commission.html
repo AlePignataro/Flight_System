@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Commission Dashboard – Flight IQ{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── layout helpers ─────────────────────────────────────────────── */
+  .dash-card   { min-width: 250px; }         /* same for both cards   */
+  .charts-flex { display:flex; gap:2rem; justify-content:center;
+                 flex-wrap:wrap; margin:2rem 0; }
+  .chart-box   { width:320px; max-width:400px; }
+  #pieChart    { max-height:400px; }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="title mb-4">
+    <h1>Commission Dashboard</h1>
+    <p class="subtitle">Your sales performance at a glance</p>
+  </div>
+
+  {# ─── Top row: search + summary (aligned to container width) ───── #}
+  <div class="row gx-4 gy-4 mb-4">
+
+    {# Filter card #}
+    <div class="col-lg-6">
+      <div class="card shadow-sm dash-card h-100">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Filter period</h2>
+          <form class="row row-cols-lg-auto g-3 align-items-end" method="POST">
+            <div class="col-12">
+              <label class="form-label">Start&nbsp;date</label>
+              <input type="date" name="start" class="form-control" value="{{ start }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">End&nbsp;date</label>
+              <input type="date" name="end"  class="form-control" value="{{ end }}">
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary">Show</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {# Summary card – now 50 % width too, no max-width cap #}
+    <div class="col-lg-6">
+      <div class="card shadow-sm dash-card h-100">
+        <div class="card-body">
+          <h2 class="h5 mb-3">Summary</h2>
+          <ul class="mb-0">
+            <li>Total&nbsp;commission:&nbsp;$<strong>{{ '%.2f' % total_comm }}</strong></li>
+            <li>Average&nbsp;per&nbsp;ticket:&nbsp;$<strong>{{ '%.2f' % avg_comm }}</strong></li>
+            <li>Tickets&nbsp;sold:&nbsp;<strong>{{ tickets }}</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>  {# /row #}
+
+  {# ─── Charts ─────────────────────────────────────────────────────── #}
+  <div class="charts-flex">
+    <div class="chart-box"><canvas id="pieChart"></canvas></div>
+    <div class="chart-box"><canvas id="barChart"></canvas></div>
+  </div>
+
+  {# ─── Detail table ──────────────────────────────────────────────── #}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Airline</th><th>Flight&nbsp;#</th>
+        <th>Departure</th><th>Arrival</th>
+        <th>Price</th><th>Commission</th><th>Customer</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.Airline }}</td>
+          <td>{{ r.Flight_ID }}</td>
+          <td>{{ r.Departure_Airport }} {{ r.Departure_Time }}</td>
+          <td>{{ r.Arrival_Airport }} {{ r.Arrival_Time }}</td>
+          <td>${{ '%.2f' % r.Price }}</td>
+          <td>${{ '%.2f' % (r.Price|float * 0.10) }}</td>
+          <td>{{ r.Customer_Email }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<span id="data" hidden
+      data-pie-labels='{{ pie_labels|tojson|safe }}'
+      data-pie-values='{{ pie_values|tojson|safe }}'
+      data-bar-labels='{{ bar_labels|tojson|safe }}'
+      data-bar-values='{{ bar_values|tojson|safe }}'></span>
+
+<script>
+  const blob  = document.getElementById('data');
+  const pieL  = JSON.parse(blob.dataset.pieLabels);
+  const pieV  = JSON.parse(blob.dataset.pieValues);
+  const barL  = JSON.parse(blob.dataset.barLabels);
+  const barV  = JSON.parse(blob.dataset.barValues);
+
+  new Chart(document.getElementById('pieChart'), {
+    type:'pie',
+    data:{labels:pieL,datasets:[{data:pieV}]},
+    options:{plugins:{title:{display:true,text:'Commission by customer',font:{size:18}},
+                      legend:{position:'bottom'}}}
+  });
+
+  new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{labels:barL,
+          datasets:[{label:'Commission Per Day',data:barV}]},
+    options:{
+      aspectRatio:1,
+      plugins:{title:{display:true,text:'Commission Per Day',font:{size:18}}},
+      scales:{y:{beginAtZero:true,precision:0}}
+    }
+  });
+</script>
+{% endblock %}

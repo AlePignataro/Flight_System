@@ -1,0 +1,79 @@
+/* ── Flight IQ design system ─────────────────────────────────── */
+:root{
+    --brand-primary:#0d6efd;
+    --brand-secondary:#6c757d;
+    --brand-success:#198754;
+    --brand-danger:#dc3545;
+    --brand-muted:#8c8c8c;
+    --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  
+  body{font-family:var(--font-sans);background:#f8f9fa;margin:0;}
+  h1,h2{color:var(--brand-primary)}
+  .subtitle{color:var(--brand-muted)}
+  .table-striped>tbody>tr:nth-of-type(odd){background:#fafafa;}
+  
+  .navbar{display:flex;align-items:center;gap:.75rem;padding:.5rem 1rem;
+          background:#fff;border-bottom:1px solid #dee2e6;}
+  .navbar a{color:inherit;text-decoration:none}
+  .navbar img{height:40px}
+  
+  .container{max-width:960px;margin-inline:auto;padding:1rem}
+  .btn{margin-right:.25rem}
+  /* Add any small utility classes you need … */
+  
+
+/* Set the same color and dimensions as the login page navbar */
+.navbar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+background-color: #1E90FF;  /* Blue background */
+padding: 10px 20px;         /* Padding for the navbar */
+}
+
+.navbar-logo {
+display: flex;
+align-items: center;
+color: white;
+text-decoration: none;
+}
+
+.navbar-logo img {
+height: 40px;  /* Adjust logo size */
+margin-right: 10px; /* Spacing between logo and text */
+}
+
+.navbar-brand {
+font-size: 24px;
+font-weight: bold;
+}
+
+.navbar a {
+color: white;
+text-decoration: none;
+margin-left: 15px;
+}
+
+.navbar a:hover {
+text-decoration: underline;
+}
+
+/* Adjust the logout button */
+.navbar .btn-outline-danger {
+background-color: white;
+border: none;
+color: #1E90FF;
+}
+
+.navbar .btn-outline-danger:hover {
+background-color: #1E90FF;
+color: white;
+}
+
+/* static/css/main.css */
+.card .form-label { font-weight: 500; }
+.table thead th { white-space: nowrap; }
+
+
+      

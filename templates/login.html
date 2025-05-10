@@ -1,0 +1,134 @@
+{# ── templates/login.html ──────────────────────────────────────────── #}
+{% extends "base.html" %}
+{% block title %}Login – Air Ticket Reservation System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  {# ── flash messages (success | danger | info | warning) ──────────── #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-stack mb-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show"
+               role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {# ── Hero title ──────────────────────────────────────────────────── #}
+  <div class="title text-center my-4">
+    <h1>Flight IQ</h1>
+    <p class="lead">Where your next adventure starts</p>
+  </div>
+
+  {# ── Login box ───────────────────────────────────────────────────── #}
+  <div class="login-box mx-auto">
+    <h2 class="mb-3 text-center">Login</h2>
+
+    <form action="{{ url_for('login') }}" method="POST" novalidate>
+      <!-- Role picker -->
+      <div class="mb-3" id="role-group">
+        <label for="role" class="form-label">Role</label>
+        <select id="role" name="role"
+                class="form-select w-100"   <!-- full width -->
+                required>
+          <option value="customer">Customer</option>
+          <option value="agent">Booking Agent</option>
+          <option value="staff">Airline Staff</option>
+        </select>
+      </div>
+
+      <!-- Email (Customer & Agent) -->
+      <div class="mb-3" id="email-group">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" id="email" name="email"
+               class="form-control w-100">
+      </div>
+
+      <!-- Username (Staff) -->
+      <div class="mb-3" id="username-group">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" id="username" name="username"
+               class="form-control w-100">
+      </div>
+
+      <!-- Booking-agent ID (Agent only) -->
+      <div class="mb-3" id="agent-id-group">
+        <label for="booking_agent_id" class="form-label">Booking Agent&nbsp;ID</label>
+        <input type="text" id="booking_agent_id" name="booking_agent_id"
+               class="form-control w-100">
+      </div>
+
+      <!-- Password -->
+      <div class="mb-4" id="password-group">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" id="password" name="password"
+               class="form-control w-100" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Login</button>
+    </form>
+
+    <div class="register-link text-center mt-3">
+      <p class="mb-0">
+        Don't have an account?
+        <a href="{{ url_for('signup') }}">Register here</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+{# ── field-toggling script ─────────────────────────────────────────── #}
+<script>
+const roleSelect    = document.getElementById('role');
+const emailGroup    = document.getElementById('email-group');
+const usernameGroup = document.getElementById('username-group');
+const agentIdGroup  = document.getElementById('agent-id-group');
+
+const emailInput    = document.getElementById('email');
+const usernameInput = document.getElementById('username');
+const agentIdInput  = document.getElementById('booking_agent_id');
+
+function showOnly(...groups) {
+  /* hide all */
+  [emailGroup, usernameGroup, agentIdGroup].forEach(g => g.style.display = 'none');
+  /* show selected */
+  groups.forEach(g => g.style.display = 'block');
+}
+
+function tweakFields() {
+  const role = roleSelect.value;
+
+  /* reset required flags */
+  [emailInput, usernameInput, agentIdInput].forEach(f => f.required = false);
+
+  if (role === 'customer') {
+    showOnly(emailGroup);
+    emailInput.required = true;
+  }
+  else if (role === 'agent') {
+    showOnly(emailGroup, agentIdGroup);
+    emailInput.required  =
+    agentIdInput.required = true;
+  }
+  else if (role === 'staff') {
+    showOnly(usernameGroup);
+    usernameInput.required = true;
+  }
+}
+
+/* run once, then on every change */
+tweakFields();
+roleSelect.addEventListener('change', tweakFields);
+</script>
+{% endblock %}

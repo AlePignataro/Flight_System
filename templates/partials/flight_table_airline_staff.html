@@ -1,0 +1,45 @@
+{% if rows %}
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Airline</th>
+          <th>Flight&nbsp;#</th>
+          <th>Departure&nbsp;Airport</th>
+          <th>Departure&nbsp;Time</th>
+          <th>Arrival&nbsp;Airport</th>
+          <th>Arrival&nbsp;Time</th>
+          <th>Status</th>
+          {% if is_airline_staff and operator %}<th>Change Status</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.Airline }}</td>
+            <td>{{ r.Flight_ID }}</td>
+            <td>{{ r.Departure_Airport }}</td>
+            <td>{{ r.Departure_Time }}</td>
+            <td>{{ r.Arrival_Airport }}</td>
+            <td>{{ r.Arrival_Time }}</td>
+            <td>{{ r.Status_ }}</td>
+            {% if is_airline_staff and operator %}
+              <td>
+                <form method="post" action="{{ url_for('airline_staff_change_status', airline=r.Airline, flight_id=r.Flight_ID) }}">
+                  <select name="status" class="form-select">
+                    <option value="On Time" {% if r.Status_ == 'On Time' %}selected{% endif %}>On Time</option>
+                    <option value="Delayed" {% if r.Status_ == 'Delayed' %}selected{% endif %}>Delayed</option>
+                    <option value="Cancelled" {% if r.Status_ == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                  </select>
+                  <button type="submit" class="btn btn-warning btn-sm mt-2">Change</button>
+                </form>
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p class="text-muted">No matching flights.</p>
+{% endif %}
