@@ -1,16 +1,3 @@
-"""
-App – root package for the Flight-Ticket web application.
-
-This module:
-
-    • declares the package so that `import App.…` works;
-    • re-exports the key database-service classes for convenience;
-    • provides a package-level logger.
-
-Usage
------
-"""
-
 from __future__ import annotations
 
 import logging
