@@ -1,58 +1,533 @@
 {% extends "base.html" %}
 
-{% block title %}Staff · New flight{% endblock %}
+{% block title %}Create New Flight | Flight IQ{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Custom styles for flight creation form */
+  .flight-form-container {
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .flight-form-header {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    padding: 1.5rem;
+    color: white;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  .flight-form-header h3 {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .flight-form-header p {
+    margin-bottom: 0;
+    opacity: 0.9;
+  }
+
+  .flight-form-body {
+    padding: 2rem;
+  }
+
+  .info-alert {
+    background-color: rgba(13, 110, 253, 0.1);
+    border-left: 4px solid #0d6efd;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.375rem;
+  }
+
+  .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+  }
+
+  .form-control, .form-select {
+    border-radius: 0.5rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid #ced4da;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+
+  .input-group-text {
+    background-color: #e9ecef;
+    border-radius: 0.5rem;
+    border: 1px solid #ced4da;
+  }
+
+  .flight-section {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e9ecef;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #0d6efd;
+    display: flex;
+    align-items: center;
+  }
+
+  .section-title svg {
+    margin-right: 0.5rem;
+  }
+
+  .btn-gradient {
+    background: linear-gradient(to right, #0d6efd, #0a58ca);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(to right, #0a58ca, #084298);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-outline-gradient {
+    background: white;
+    border: 1px solid #0d6efd;
+    color: #0d6efd;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-gradient:hover {
+    background: rgba(13, 110, 253, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  /* Status badge styles */
+  .status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 50rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .status-badge.upcoming {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+  }
+
+  .status-badge svg {
+    margin-right: 0.35rem;
+  }
+
+  /* Time and date fields with icons */
+  .time-date-field {
+    position: relative;
+  }
+
+  .time-date-field svg {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+  }
+
+  .time-date-field input {
+    padding-right: 2.5rem;
+  }
+
+  /* Flash message styles */
+  .flash-message {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .flash-message-icon {
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .flash-message-content {
+    flex-grow: 1;
+  }
+
+  .flash-message-success {
+    background-color: rgba(25, 135, 84, 0.1);
+    border-left: 4px solid #198754;
+    color: #0f5132;
+  }
+
+  .flash-message-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-left: 4px solid #dc3545;
+    color: #842029;
+  }
+
+  .flash-message-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid #ffc107;
+    color: #664d03;
+  }
+
+  .flash-message-info {
+    background-color: rgba(13, 202, 240, 0.1);
+    border-left: 4px solid #0dcaf0;
+    color: #055160;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .flight-form-body {
+      padding: 1.5rem;
+    }
+    
+    .form-buttons {
+      flex-direction: column;
+    }
+    
+    .form-buttons .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Create new flight</h2>
-
-<form method="post" class="row g-3">
-  <div class="col-md-4">
-    <label class="form-label">Flight ID</label>
-    <input name="Flight_ID" class="form-control" required>
+<div class="flight-form-container">
+  <div class="flight-form-header">
+    <h3>Create New Flight</h3>
+    <p>Add a new flight to your airline's schedule</p>
   </div>
+  
+  <div class="flight-form-body">
+    <!-- Flash Messages Section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% set category = category if category in ['success', 'danger', 'warning', 'info'] else 'info' %}
+          <div class="flash-message flash-message-{{ category }}">
+            <div class="flash-message-icon">
+              {% if category == 'success' %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+              {% elif category == 'danger' %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                </svg>
+              {% elif category == 'warning' %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                </svg>
+              {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                </svg>
+              {% endif %}
+            </div>
+            <div class="flash-message-content">
+              {{ message }}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-  <div class="col-md-4">
-    <label class="form-label">Airplane ID</label>
-    <input name="Airplane_ID" class="form-control" required>
+    <div class="info-alert mb-4">
+      <div class="d-flex align-items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#0d6efd" class="me-2" viewBox="0 0 16 16">
+          <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+        </svg>
+        <strong>Flight ID will be automatically generated based on your airline code and a unique number.</strong>
+      </div>
+    </div>
+    
+    <form method="post" class="needs-validation" novalidate>
+      
+      <!-- Basic Information Section -->
+      <div class="flight-section">
+        <div class="section-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+            <path d="M4.5 3h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm0 4h7a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm0 4h3a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5z"/>
+          </svg>
+          Basic Information
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="airplane_id" class="form-label">Airplane ID</label>
+            <input type="text" class="form-control" id="airplane_id" name="Airplane_ID" required>
+            <div class="invalid-feedback">Please provide an Airplane ID.</div>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="price" class="form-label">Price ($)</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input type="number" step="0.01" min="0" class="form-control" id="price" name="Price" required>
+              <div class="invalid-feedback">Please provide a valid price.</div>
+            </div>
+          </div>
+          
+          <div class="col-12">
+            <label class="form-label">Status</label>
+            <div>
+              <span class="status-badge upcoming">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                  <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                </svg>
+                Upcoming
+              </span>
+              <input type="hidden" name="Status_" value="Upcoming">
+              <div class="form-text">New flights are automatically set to "Upcoming" status</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Route Information Section -->
+      <div class="flight-section">
+        <div class="section-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M12.5 4a.5.5 0 0 0-1 0v3.248L5.233 3.612C4.713 3.31 4.11 3.275 3.504 3.521c-.586.246-1.014.86-1.004 1.491a2 2 0 0 0 1.09 1.748l6.516 3.632v3.22a.5.5 0 0 0 1 0V9.157l1.386.772a1 1 0 0 0 1.475-.869l.067-.885a1 1 0 0 0-.56-.91L3.973 2.73a1 1 0 0 0-1.328.33l-.236.425a1 1 0 0 0 .39 1.376l9.7 5.36Z"/>
+          </svg>
+          Route Information
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="departure_airport" class="form-label">Departure Airport</label>
+            <input type="text" class="form-control" id="departure_airport" name="Departure_Airport" placeholder="e.g. JFK" required>
+            <div class="invalid-feedback">Please provide a departure airport.</div>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="arrival_airport" class="form-label">Arrival Airport</label>
+            <input type="text" class="form-control" id="arrival_airport" name="Arrival_Airport" placeholder="e.g. LAX" required>
+            <div class="invalid-feedback">Please provide an arrival airport.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Schedule Information Section -->
+      <div class="flight-section">
+        <div class="section-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+          </svg>
+          Schedule Information
+        </div>
+        
+        <div class="row g-3">
+          <div class="col-md-6 col-lg-3">
+            <label for="departure_date" class="form-label">Departure Date</label>
+            <div class="time-date-field">
+              <input type="date" class="form-control" id="departure_date" name="Departure_Date" required>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M4 .5a.5.5 0 0 0-1 0V1H2a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-1V.5a.5.5 0 0 0-1 0V1H4V.5zM1 14V4h14v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm13-10H2V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1z"/>
+              </svg>
+              <div class="invalid-feedback">Please select a departure date.</div>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-3">
+            <label for="departure_time" class="form-label">Departure Time</label>
+            <div class="time-date-field">
+              <input type="time" class="form-control" id="departure_time" name="Departure_Time" required>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+              </svg>
+              <div class="invalid-feedback">Please select a departure time.</div>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-3">
+            <label for="arrival_date" class="form-label">Arrival Date</label>
+            <div class="time-date-field">
+              <input type="date" class="form-control" id="arrival_date" name="Arrival_Date" required>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M4 .5a.5.5 0 0 0-1 0V1H2a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-1V.5a.5.5 0 0 0-1 0V1H4V.5zM1 14V4h14v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm13-10H2V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1z"/>
+              </svg>
+              <div class="invalid-feedback">Please select an arrival date.</div>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-3">
+            <label for="arrival_time" class="form-label">Arrival Time</label>
+            <div class="time-date-field">
+              <input type="time" class="form-control" id="arrival_time" name="Arrival_Time" required>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+              </svg>
+              <div class="invalid-feedback">Please select an arrival time.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-buttons">
+        <button type="submit" class="btn btn-gradient">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+            <path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
+          </svg>
+          Create Flight
+        </button>
+        <a href="{{ url_for('staff_flights') }}" class="btn btn-outline-gradient">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+          </svg>
+          Cancel
+        </a>
+      </div>
+    </form>
   </div>
+</div>
 
-  <div class="col-md-4">
-    <label class="form-label">Price ($)</label>
-    <input name="Price" type="number" step="0.01" class="form-control" required>
-  </div>
+{% endblock %}
 
-  <div class="col-md-6">
-    <label class="form-label">Departure airport</label>
-    <input name="Departure_Airport" class="form-control" required>
-  </div>
+{% block scripts %}
+{{ super() }}
+<script>
+  // Form validation script
+  (function() {
+    'use strict';
+    
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation');
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms).forEach(function(form) {
+      form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        
+        form.classList.add('was-validated');
+      }, false);
+    });
+    
+    // Logic to validate departure/arrival combinations
+    const departureDate = document.getElementById('departure_date');
+    const departureTime = document.getElementById('departure_time');
+    const arrivalDate = document.getElementById('arrival_date');
+    const arrivalTime = document.getElementById('arrival_time');
+    const departureAirport = document.getElementById('departure_airport');
+    const arrivalAirport = document.getElementById('arrival_airport');
+    
+    // Set minimum dates to today
+    const today = new Date().toISOString().split('T')[0];
+    departureDate.min = today;
+    arrivalDate.min = today;
+    
+    // Validate that arrival is after departure
+    function validateDates() {
+      const depDate = departureDate.value;
+      const depTime = departureTime.value;
+      const arrDate = arrivalDate.value;
+      const arrTime = arrivalTime.value;
+      
+      if (depDate && arrDate) {
+        // If departure date is after arrival date, set arrival date to departure date
+        if (depDate > arrDate) {
+          arrivalDate.value = depDate;
+        }
+        
+        // If same day, ensure arrival time is after departure time
+        if (depDate === arrDate && depTime && arrTime) {
+          if (depTime > arrTime) {
+            // Set a custom validity message
+            arrivalTime.setCustomValidity('Arrival time must be after departure time on the same day');
+          } else {
+            arrivalTime.setCustomValidity('');
+          }
+        } else {
+          arrivalTime.setCustomValidity('');
+        }
+      }
+    }
+    
+    // Validate that departure and arrival airports are different
+    function validateAirports() {
+      const depAirport = departureAirport.value.trim().toUpperCase();
+      const arrAirport = arrivalAirport.value.trim().toUpperCase();
+      
+      if (depAirport && arrAirport && depAirport === arrAirport) {
+        arrivalAirport.setCustomValidity('Departure and arrival airports must be different');
+      } else {
+        arrivalAirport.setCustomValidity('');
+      }
+    }
+    
+    // Add event listeners for date/time validation
+    [departureDate, departureTime, arrivalDate, arrivalTime].forEach(el => {
+      el.addEventListener('change', validateDates);
+    });
+    
+    // Add event listeners for airport validation
+    [departureAirport, arrivalAirport].forEach(el => {
+      el.addEventListener('input', validateAirports);
+      el.addEventListener('blur', validateAirports);
+    });
+    
+    // Format airplane ID to uppercase
+    const airplaneId = document.getElementById('airplane_id');
+    airplaneId.addEventListener('input', function() {
+      this.value = this.value.toUpperCase();
+    });
 
-  <div class="col-md-6">
-    <label class="form-label">Arrival airport</label>
-    <input name="Arrival_Airport" class="form-control" required>
-  </div>
-
-  <div class="col-md-6">
-    <label class="form-label">Departure date</label>
-    <input name="Departure_Date" type="date" class="form-control" required>
-  </div>
-
-  <div class="col-md-6">
-    <label class="form-label">Departure time</label>
-    <input name="Departure_Time" type="time" class="form-control" required>
-  </div>
-
-  <div class="col-md-6">
-    <label class="form-label">Arrival date</label>
-    <input name="Arrival_Date" type="date" class="form-control" required>
-  </div>
-
-  <div class="col-md-6">
-    <label class="form-label">Arrival time</label>
-    <input name="Arrival_Time" type="time" class="form-control" required>
-  </div>
-
-  <div class="col-12">
-    <button class="btn btn-primary">Create flight</button>
-  </div>
-</form>
+    // Auto-hide flash messages after 5 seconds
+    const flashMessages = document.querySelectorAll('.flash-message');
+    if (flashMessages.length > 0) {
+      setTimeout(function() {
+        flashMessages.forEach(function(message) {
+          // Fade out effect
+          message.style.transition = 'opacity 0.5s ease';
+          message.style.opacity = '0';
+          
+          // Remove from DOM after fade completes
+          setTimeout(function() {
+            message.remove();
+          }, 500);
+        });
+      }, 5000);
+    }
+  })();
+</script>
 {% endblock %}

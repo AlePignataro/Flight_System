@@ -806,40 +806,98 @@ class AirlineStaffDB(AbstractUserDB):
         rows = self._fetchall(sql, (airline, flight_id))
         return [r["Customer_Email"] for r in rows]
 
-    # ––– create / update entities (Admin / Operator gated) –––
-    def create_flight(self, **flight_attrs) -> None:
+    def generate_flight_id(self, airline: str) -> str:
         """
-        Insert a new row into Flight.
-
+        Generate a unique flight ID for the given airline.
+        Format: AA123 (2 airline code letters + 3 random digits)
+        
+        Returns a unique flight ID that doesn't already exist in the database.
+        """
+        # Get airline code (first 2 letters or whole name if shorter)
+        airline_code = airline[:2].upper()
+        
+        # Keep generating IDs until we find an unused one
+        while True:
+            # Generate random 3-digit number
+            number = random.randint(100, 999)
+            flight_id = f"{airline_code}{number}"
+            
+            # Check if this flight ID already exists
+            exists = self._fetchone(
+                "SELECT 1 FROM Flight WHERE Airline = %s AND Flight_ID = %s",
+                (airline, flight_id)
+            )
+            
+            # If not found, return this unique ID
+            if not exists:
+                return flight_id
+    
+    def create_flight(self, **flight_attrs) -> str:
+        """
+        Insert a new row into Flight with auto-generated Flight_ID.
+        
+        Uses a direct SQL query with named parameters and validates required fields.
+        
         Parameters
         ----------
-        **flight_attrs : column=value pairs that describe the flight.
-                         Only columns listed in _ALLOWED_FLIGHT_COLS
-                         are accepted.
+        **flight_attrs : column=value pairs that describe the flight
+        
+        Returns
+        -------
+        str : The generated Flight_ID
+        
         Raises
         ------
-        ValueError if an unknown column is supplied or if the
-        call contains no attributes.
+        ValueError if a required field is missing
         """
-        if not flight_attrs:
-            raise ValueError("create_flight() called with no attributes.")
+        # Required fields check
+        required_fields = [
+            "Airline", "Airplane_ID", "Departure_Airport", 
+            "Departure_Date", "Departure_Time", "Arrival_Airport",
+            "Arrival_Date", "Arrival_Time", "Status_", "Price"
+        ]
+        
+        # Check for missing fields
+        missing_fields = [field for field in required_fields if field not in flight_attrs]
+        if missing_fields:
+            raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+        
+        # Generate Flight_ID (2 letters of airline + 3 random digits)
+        airline = flight_attrs["Airline"]
+        flight_id = self.generate_flight_id(airline=airline)
+        # Create parameters dictionary with the generated flight_id
+        params = {
+            "flight_id": flight_id,
+            "airline": flight_attrs["Airline"],
+            "airplane_id": flight_attrs["Airplane_ID"],
+            "departure_airport": flight_attrs["Departure_Airport"],
+            "departure_date": flight_attrs["Departure_Date"],
+            "departure_time": flight_attrs["Departure_Time"],
+            "arrival_airport": flight_attrs["Arrival_Airport"],
+            "arrival_date": flight_attrs["Arrival_Date"],
+            "arrival_time": flight_attrs["Arrival_Time"],
+            "status": flight_attrs["Status_"],
+            "price": flight_attrs["Price"]
+        }
+        
+        # Direct SQL query with named parameters
+        sql = """
+        INSERT INTO Flight (
+            Flight_ID, Airline, Airplane_ID, Departure_Airport, 
+            Departure_Date, Departure_Time, Arrival_Airport, 
+            Arrival_Date, Arrival_Time, Status_, Price
+        ) VALUES (
+            %(flight_id)s, %(airline)s, %(airplane_id)s, %(departure_airport)s,
+            %(departure_date)s, %(departure_time)s, %(arrival_airport)s,
+            %(arrival_date)s, %(arrival_time)s, %(status)s, %(price)s
+        )
+        """
+        # Execute the query with a tuple of values
+        self._execute_query(sql, params)
+        
+        # Return the generated flight_id
+        return flight_id
 
-        # — 1.  whitelist check —
-        illegal_cols = set(flight_attrs) - self._ALLOWED_FLIGHT_COLS
-        if illegal_cols:
-            raise ValueError(f"Unknown column(s): {', '.join(illegal_cols)}")
-
-        # — 2.  build statement —
-        # Keep deterministic order to avoid test flakiness.
-        ordered_items = [(k, flight_attrs[k])
-                         for k in sorted(flight_attrs.keys())]
-
-        cols = ", ".join(k for k, _ in ordered_items)
-        ph   = ", ".join(["%s"] * len(ordered_items))
-        sql  = f"INSERT INTO Flight ({cols}) VALUES ({ph})"
-
-        # — 3.  execute with bound parameters —
-        self._execute_query(sql, tuple(v for _, v in ordered_items))
 
 
     def update_flight_status(self, airline: str,

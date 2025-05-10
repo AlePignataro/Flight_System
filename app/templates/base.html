@@ -66,63 +66,9 @@
         <!-- Left-side navigation links (starting from far left) -->
         <ul class="navbar-nav">
           {% if session.get('user_id') %}
-            {% if session.get('role') == 'customer' %}
-              <li class="nav-item">
+            <li class="nav-item">
                 <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Dashboard</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'customer_flight_search' %}active{% endif %}" href="{{ url_for('customer_flight_search') }}">Search Flights</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'customer_past_flights' %}active{% endif %}" href="{{ url_for('customer_past_flights') }}">Past Flights</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'customer_spending' %}active{% endif %}" href="{{ url_for('customer_spending') }}">Spending</a>
-              </li>
-            {% elif session.get('role') == 'agent' %}
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Dashboard</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'agent_flight_search' %}active{% endif %}" href="{{ url_for('agent_flight_search') }}">Book Flight</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'agent_past_flights' %}active{% endif %}" href="{{ url_for('agent_past_flights') }}">Past Sales</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'agent_commission' %}active{% endif %}" href="{{ url_for('agent_commission') }}">Commission</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'agent_top_customers' %}active{% endif %}" href="{{ url_for('agent_top_customers') }}">Top Customers</a>
-              </li>
-            {% elif session.get('role') == 'staff' %}
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Dashboard</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'staff_flights' %}active{% endif %}" href="{{ url_for('staff_flights') }}">Flights</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'staff_analytics' %}active{% endif %}" href="{{ url_for('staff_analytics') }}">Analytics</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link {% if request.endpoint == 'staff_customers' %}active{% endif %}" href="{{ url_for('staff_customers') }}">Customers</a>
-              </li>
-              {% if 'Admin' in (session.get('permissions') or []) %}
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
-                    Admin
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="{{ url_for('staff_new_flight') }}">Create Flight</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('staff_add_airplane') }}">Add Airplane</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('staff_add_airport') }}">Add Airport</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('staff_view_booking_agents') }}">Booking Agents</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('staff_manage_permissions') }}">Staff Permissions</a></li>
-                  </ul>
-                </li>
-              {% endif %}
-            {% endif %}
           {% else %}
             <!-- Navigation for non-logged in users (Far Left) -->
             <li class="nav-item">

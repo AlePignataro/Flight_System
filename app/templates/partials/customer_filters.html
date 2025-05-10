@@ -1,60 +1,48 @@
 {# ── templates/partials/customer_filters.html ────────────────────────── #}
-<div class="card shadow-sm border-0 mb-4 mt-3">
-  <div class="card-body">
-
-    <form class="row gy-2 gx-3 align-items-end"
-          method="get"
-          action="{{ url_for('customer_flight_search') }}"
-          id="custFilters">
-
-      <h5 class="fw-bold mb-3">Search flights</h5>
-
-      <div class="col-lg-3 col-md-6">
-        <label class="form-label">Start date</label>
-        <input type="date"
-               class="form-control"
-               name="start_date"
-               value="{{ request.args.get('start_date', '') }}">
-      </div>
-
-      <div class="col-lg-3 col-md-6">
-        <label class="form-label">End date</label>
-        <input type="date"
-               class="form-control"
-               name="end_date"
-               value="{{ request.args.get('end_date', '') }}">
-      </div>
-
-      <div class="col-lg-3 col-md-6">
-        <label class="form-label">Departure airport</label>
+<form class="row g-3" action="{{ url_for('customer_flight_search') }}" method="get">
+    <div class="col-md-3">
+        <label class="form-label fw-medium">Departure Airport</label>
         <select class="form-select" name="source">
-          <option value="">All</option>
-          {% for a in departure_airports %}
-            <option value="{{ a }}"
-                    {{ 'selected' if request.args.get('source') == a else '' }}>
-              {{ a }}
-            </option>
-          {% endfor %}
+            <option value="">All Airports</option>
+            {% for a in departure_airports %}
+                <option value="{{ a }}" {{ 'selected' if request.args.get('source') == a else '' }}>
+                    {{ a }}
+                </option>
+            {% endfor %}
         </select>
-      </div>
+    </div>
 
-      <div class="col-lg-3 col-md-6">
-        <label class="form-label">Arrival airport</label>
+    <div class="col-md-3">
+        <label class="form-label fw-medium">Arrival Airport</label>
         <select class="form-select" name="destination">
-          <option value="">All</option>
-          {% for a in arrival_airports %}
-            <option value="{{ a }}"
-                    {{ 'selected' if request.args.get('destination') == a else '' }}>
-              {{ a }}
-            </option>
-          {% endfor %}
+            <option value="">All Airports</option>
+            {% for a in arrival_airports %}
+                <option value="{{ a }}" {{ 'selected' if request.args.get('destination') == a else '' }}>
+                    {{ a }}
+                </option>
+            {% endfor %}
         </select>
-      </div>
+    </div>
 
-      <div class="col-12 d-flex justify-content-end mt-2">
-        <button class="btn btn-primary px-4">Search</button>
-      </div>
-    </form>
+    <div class="col-md-3">
+        <label class="form-label fw-medium">Departure Date</label>
+        <input type="date" class="form-control" name="start_date" value="{{ request.args.get('start_date', '') }}">
+    </div>
 
-  </div>
-</div>
+    <div class="col-md-3">
+        <label class="form-label fw-medium">Results Limit</label>
+        <select class="form-select" name="limit">
+            <option value="5" {% if request.args.get('limit') == '5' %}selected{% endif %}>5 flights</option>
+            <option value="10" {% if request.args.get('limit') == '10' %}selected{% endif %}>10 flights</option>
+            <option value="15" {% if not request.args.get('limit') or request.args.get('limit') == '15' %}selected{% endif %}>15 flights</option>
+            <option value="25" {% if request.args.get('limit') == '25' %}selected{% endif %}>25 flights</option>
+            <option value="50" {% if request.args.get('limit') == '50' %}selected{% endif %}>50 flights</option>
+        </select>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search me-1"></i> Search Flights
+        </button>
+    </div>
+</form>

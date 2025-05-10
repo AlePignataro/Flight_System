@@ -629,9 +629,6 @@ def main() -> None:
             error=error,
         )
 
-
-
-
     @app.route("/agent/purchase/<airline>/<flight_id>", methods=["POST"])
     @require_agent
     def agent_purchase(airline: str, flight_id: str):
@@ -679,8 +676,6 @@ def main() -> None:
     @require_agent
     def agent_commission():
         agent_id = session["user_id"]
-
-        # ① interval: default last 30 days or form values
         today  = date.today()
         start  = today - timedelta(days=30)
         end    = today
@@ -689,18 +684,14 @@ def main() -> None:
             e = request.form.get("end")   or end.isoformat()
             start = date.fromisoformat(s)
             end   = date.fromisoformat(e)
-
-        # ② fetch rows & aggregates (all by Purchase_Date now)
         rows = agent_db.get_commission_tickets(agent_id, start, end)
 
-        # pie data
         cust_totals = {}
         for r in rows:
             cust_totals[r["Customer_Email"]] = cust_totals.get(r["Customer_Email"], 0) + float(r["Price"]) * 0.10
         pie_labels  = list(cust_totals.keys())
         pie_values  = list(cust_totals.values())
-
-        # bar data
+        
         day_rows    = agent_db.commission_per_day(agent_id, start, end)
         bar_labels  = [r["day"].strftime("%Y-%m-%d") for r in day_rows]
         bar_values  = [float(r["commission"])         for r in day_rows]
@@ -947,16 +938,32 @@ def main() -> None:
     @require_perm("Admin")
     def staff_new_flight():
         if request.method == "POST":
-            attrs = dict(request.form)          # form names == column names
-            attrs["Airline"] = _airline()       # enforce
+            # Create a dictionary from the form data
+            attrs = {
+                # Map form field names to database column names
+                "Airline": _airline(),  # Enforce current airline
+                "Airplane_ID": request.form["Airplane_ID"],
+                "Departure_Airport": request.form["Departure_Airport"],
+                "Departure_Date": request.form["Departure_Date"],
+                "Departure_Time": request.form["Departure_Time"],
+                "Arrival_Airport": request.form["Arrival_Airport"],
+                "Arrival_Date": request.form["Arrival_Date"], 
+                "Arrival_Time": request.form["Arrival_Time"],
+                "Price": request.form["Price"],
+                "Status_": "Upcoming"  # Default status for new flights
+            }
+            
             try:
-                staff_db.create_flight(**attrs)
-                flash("Flight created ✅", "success")
+                # Use the enhanced create_flight method that generates Flight_ID
+                flight_id = staff_db.create_flight(**attrs)
+                flash(f"Flight {flight_id} created successfully ✅", "success")
                 return redirect(url_for("staff_flights"))
-            except RuntimeError as err:
+            except ValueError as err:
                 flash(str(err), "danger")
+            except Exception as err:
+                flash(f"Error creating flight: {str(err)}", "danger")
+                
         return render_template("staff_new_flight.html")
-
     # ──────────────── 4. Add airplane (+ list) (Admin) ───────────────
     @app.route("/staff/airplane/new", methods=["GET", "POST"])
     @require_perm("Admin")

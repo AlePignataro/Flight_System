@@ -1,168 +1,316 @@
-{# ─── templates/staff_analytics.html — compact two-row filter ─── #}
 {% extends "base.html" %}
-{% block title %}Airline analytics{% endblock %}
+{% block title %}Airline Analytics Dashboard{% endblock %}
 
-{% block head %}
-  <style>
-    /* ───────── CARD + TYPOGRAPHY ───────── */
-    .card-chart          { height:100%; }
-    .card-chart canvas   { width:100%!important; }
-    .card-chart h6       { font-size:1rem; margin-bottom:1rem; }
-
-    .summary-card h3     { font-size:2.25rem; margin-bottom:.25rem; }
-    .summary-metric      { font-size:.95rem; color:#6c757d; }
-
-    /* ───────── FILTER INPUT SIZE ───────── */
-    .dash-form .form-control {
-        width:100%;
-        max-width:190px;      /* ### ADJUST width of each input */
+{% block extra_css %}
+<style>
+    /* ───────── PAGE LAYOUT ───────── */
+    .analytics-header {
+        margin-bottom: 2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+    
+    .analytics-header h2 {
+        font-weight: 600;
+        margin: 0;
+        color: #333;
     }
 
-    /* ───────── COMPACT PADDING / GAP ───── */
-    .filter-card, .summary-card { padding:1.25rem 1.5rem!important; } /* default p-4 → p-3 */
-    .dash-form.row.g-3          { row-gap:.75rem!important; }        /* tighten vertical gap */
+    /* ───────── FILTER CARD ───────── */
+    .filter-card {
+        padding: 1.25rem 1.5rem !important;
+        border: none;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .filter-card h5 {
+        font-weight: 600;
+        color: #0d6efd;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .dash-form .form-control {
+        width: 100%;
+        max-width: 190px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .dash-form .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .dash-form.row.g-3 {
+        row-gap: 0.75rem !important;
+    }
+    
+    .dash-form .btn-primary {
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        border-radius: 6px;
+    }
 
-    .nodata              { text-align:center; padding:3rem 0; color:#6c757d; }
-  </style>
+    /* ───────── SUMMARY CARD ───────── */
+    .summary-card {
+        padding: 1.25rem 1.5rem !important;
+        border: none;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        height: 100%;
+    }
+    
+    .summary-card h5 {
+        font-weight: 600;
+        color: #0d6efd;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .summary-card h3 {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #0d6efd;
+        margin-bottom: 0.25rem;
+    }
+    
+    .summary-metric {
+        font-size: 0.95rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+    }
+    
+    .metric-divider {
+        border-right: 1px solid #eaeaea;
+    }
+    
+    .summary-split-metric {
+        text-align: center;
+    }
+    
+    .summary-split-metric h3 {
+        font-size: 1.75rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .summary-split-metric .summary-metric {
+        font-size: 0.85rem;
+        margin-bottom: 0;
+    }
+
+    /* ───────── CHART CARDS ───────── */
+    .card-chart {
+        border: none;
+        border-radius: 10px;
+        height: 100%;
+        padding: 1.5rem !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-chart h6 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+        text-align: center;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .card-chart canvas {
+        width: 100% !important;
+    }
+    
+    /* Larger chart heights for better visibility */
+    #monthlyChart, #destChart, #top3mChart, #top1yChart, #custMonthChart, #schedPie {
+        height: 380px !important;
+    }
+    
+    .nodata {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        color: #adb5bd;
+        font-weight: 500;
+        font-size: 0.95rem;
+        text-align: center;
+    }
+    
+    /* ───────── RESPONSIVE ADJUSTMENTS ───────── */
+    @media (max-width: 992px) {
+        .filter-card, .summary-card {
+            margin-bottom: 1.5rem;
+        }
+        
+        #monthlyChart, #destChart, #top3mChart, #top1yChart, #custMonthChart, #schedPie {
+            height: 300px !important;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Airline analytics</h2>
+<div class="container">
+    <!-- Header -->
+    <div class="analytics-header">
+        <h2>Airline Analytics Dashboard</h2>
+    </div>
 
-{# ───────── Header with two aligned cards ───────── #}
-<div class="row g-4 mb-5">
+    <!-- Filter and Summary Cards Row -->
+    <div class="row g-4 mb-5">
+        <!-- FILTER: 7/12 columns on large screens -->
+        <div class="col-12 col-lg-7">
+            <div class="filter-card h-100">
+                <h5>Analytics Filter</h5>
 
-  <!-- FILTER: 7 / 12 columns on large screens -->
-  <div class="col-12 col-lg-7">
-    <div class="card shadow-sm h-100 filter-card">
-      <h5 class="mb-3">Filter</h5>
+                <!-- Two-row grid form -->
+                <form method="get" class="row row-cols-1 row-cols-md-2 g-3 dash-form">
+                    <!-- From -->
+                    <div>
+                        <label class="form-label" for="start">From</label>
+                        <input type="date" id="start" name="start"
+                               class="form-control" value="{{ start.isoformat() }}">
+                    </div>
 
-      <!-- TWO-ROW GRID: row-cols-md-2 gives two cols per row ≥ md -->
-      <form method="get" class="row row-cols-1 row-cols-md-2 g-3 dash-form">
+                    <!-- To -->
+                    <div>
+                        <label class="form-label" for="end">To</label>
+                        <input type="date" id="end" name="end"
+                               class="form-control" value="{{ end.isoformat() }}">
+                    </div>
 
-        <!-- From -->
-        <div>
-          <label class="form-label mb-0" for="start">From</label>
-          <input type="date" id="start" name="start"
-                 class="form-control" value="{{ start.isoformat() }}">
+                    <!-- Top-N destinations -->
+                    <div>
+                        <label class="form-label" for="dest_limit">Top Destinations</label>
+                        <input type="number" min="1" id="dest_limit" name="dest_limit"
+                               class="form-control" value="{{ dest_limit }}">
+                    </div>
+
+                    <!-- Top-N customers -->
+                    <div>
+                        <label class="form-label" for="cust_limit">Top Customers</label>
+                        <input type="number" min="1" id="cust_limit" name="cust_limit"
+                               class="form-control" value="{{ cust_limit }}">
+                    </div>
+
+                    <!-- Apply Button -->
+                    <div class="col-12">
+                        <button class="btn btn-primary">Apply Filters</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <!-- To -->
-        <div>
-          <label class="form-label mb-0" for="end">To</label>
-          <input type="date" id="end" name="end"
-                 class="form-control" value="{{ end.isoformat() }}">
+        <!-- SUMMARY: 5/12 columns -->
+        <div class="col-12 col-lg-5">
+            <div class="summary-card h-100">
+                <h5>Revenue Summary</h5>
+                
+                <h3>${{ '%.2f'|format(summary.total_rev or 0) }}</h3>
+                <div class="summary-metric">Total revenue for selected period</div>
+
+                <div class="row">
+                    <div class="col-6 metric-divider">
+                        <div class="summary-split-metric">
+                            <h3>{{ (summary.total_tix or 0)|int }}</h3>
+                            <div class="summary-metric">Tickets Sold</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="summary-split-metric">
+                            <h3>{{ (summary.agent_tix or 0)|int }}</h3>
+                            <div class="summary-metric">Via Agents</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="row g-4">
+        <!-- 1 · Monthly Revenue -->
+        <div class="col-12 col-md-6">
+            <div class="card-chart">
+                <h6>Revenue by Month (Direct vs Agent)</h6>
+                <canvas id="monthlyChart" class="d-none"></canvas>
+                <div id="monthlyChart-empty" class="nodata d-none">
+                    No sales data available
+                </div>
+            </div>
         </div>
 
-        <!-- Top-N destinations -->
-        <div>
-          <label class="form-label mb-0" for="dest_limit">Top-N destinations</label>
-          <input type="number" min="1" id="dest_limit" name="dest_limit"
-                 class="form-control" value="{{ dest_limit }}">
+        <!-- 2 · Revenue by Destination -->
+        <div class="col-12 col-md-6">
+            <div class="card-chart">
+                <h6>Revenue by Destination (Top {{ dest_revenue|length }})</h6>
+                <canvas id="destChart" class="d-none"></canvas>
+                <div id="destChart-empty" class="nodata d-none">
+                    No destination revenue data available
+                </div>
+            </div>
         </div>
 
-        <!-- Top-N customers -->
-        <div>
-          <label class="form-label mb-0" for="cust_limit">Top-N customers</label>
-          <input type="number" min="1" id="cust_limit" name="cust_limit"
-                 class="form-control" value="{{ cust_limit }}">
+        <!-- 3 · Top Destinations – Last 3 Months -->
+        <div class="col-12 col-md-6">
+            <div class="card-chart">
+                <h6>Top Destinations – Last 3 Months</h6>
+                <canvas id="top3mChart" class="d-none"></canvas>
+                <div id="top3mChart-empty" class="nodata d-none">
+                    No data for recent destinations
+                </div>
+            </div>
         </div>
 
-        <div class="col-12">
-          <button class="btn btn-primary">Apply</button>
+        <!-- 4 · Top Destinations – Last Year -->
+        <div class="col-12 col-md-6">
+            <div class="card-chart">
+                <h6>Top Destinations – Last Year</h6>
+                <canvas id="top1yChart" class="d-none"></canvas>
+                <div id="top1yChart-empty" class="nodata d-none">
+                    No annual destination data available
+                </div>
+            </div>
         </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- SUMMARY: 5 / 12 columns -->
-  <div class="col-12 col-lg-5">
-    <div class="card shadow-sm h-100 summary-card text-center">
-      <h5 class="mb-3">Summary ({{ start }} → {{ end }})</h5>
-
-      <h3>${{ '%.2f'|format(summary.total_rev or 0) }}</h3>
-      <div class="summary-metric mb-3">gross revenue</div>
-
-      <div class="row">
-        <div class="col-6 border-end">
-          <h3>{{ (summary.total_tix or 0)|int }}</h3>
-          <div class="summary-metric">tickets sold</div>
+        <!-- 5 · Flights of Top-N Customers / Month -->
+        <div class="col-12 col-md-6">
+            <div class="card-chart">
+                <h6>Flights by Top {{ cust_limit }} Customers / Month</h6>
+                <canvas id="custMonthChart" class="d-none"></canvas>
+                <div id="custMonthChart-empty" class="nodata d-none">
+                    No customer flight data available
+                </div>
+            </div>
         </div>
-        <div class="col-6">
-          <h3>{{ (summary.agent_tix or 0)|int }}</h3>
-          <div class="summary-metric">via booking agents</div>
+
+        <!-- 6 · Scheduled Flights Next 2 Months (Pie) -->
+        <div class="col-12 col-md-6">
+            <div class="card-chart">
+                <h6>Flights Scheduled – Next 2 Months</h6>
+                <canvas id="schedPie" class="d-none"></canvas>
+                <div id="schedPie-empty" class="nodata d-none">
+                    No upcoming flights scheduled
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-</div>
-
-
-{# ───── charts grid (2 × 3) — bar-charts 380 px ─────────────────────── #}
-<div class="row g-4">
-
-  <!-- 1 · monthly revenue -->
-  <div class="col-12 col-md-6">
-    <div class="card p-4 shadow-sm card-chart">
-      <h6 class="text-center">Revenue by month <small class="text-muted">(direct vs agent)</small></h6>
-      <canvas id="monthlyChart" height="380" class="d-none"></canvas>
-      <div   id="monthlyChart-empty" class="nodata d-none">No sales</div>
-    </div>
-  </div>
-
-  <!-- 2 · revenue by destination -->
-  <div class="col-12 col-md-6">
-    <div class="card p-4 shadow-sm card-chart">
-      <h6 class="text-center">
-        Revenue by destination
-        <small class="text-muted">(top&nbsp;{{ dest_revenue|length }})</small>
-      </h6>
-      <canvas id="destChart" height="380" class="d-none"></canvas>
-      <div   id="destChart-empty" class="nodata d-none">No sales</div>
-    </div>
-  </div>
-
-  <!-- 3 · top destinations – last 3 months -->
-  <div class="col-12 col-md-6">
-    <div class="card p-4 shadow-sm card-chart">
-      <h6 class="text-center">Top destinations – last 3 months</h6>
-      <canvas id="top3mChart" height="380" class="d-none"></canvas>
-      <div   id="top3mChart-empty" class="nodata d-none">No sales</div>
-    </div>
-  </div>
-
-  <!-- 4 · top destinations – last year -->
-  <div class="col-12 col-md-6">
-    <div class="card p-4 shadow-sm card-chart">
-      <h6 class="text-center">Top destinations – last year</h6>
-      <canvas id="top1yChart" height="380" class="d-none"></canvas>
-      <div   id="top1yChart-empty" class="nodata d-none">No sales</div>
-    </div>
-  </div>
-
-  <!-- 5 · flights of top-N customers / month -->
-  <div class="col-12 col-md-6">
-    <div class="card p-4 shadow-sm card-chart">
-      <h6 class="text-center">
-        Flights of top&nbsp;{{ cust_limit }} customers / month
-      </h6>
-      <canvas id="custMonthChart" height="402" class="d-none"></canvas>
-      <div   id="custMonthChart-empty" class="nodata d-none">No data</div>
-    </div>
-  </div>
-
-  <!-- 6 · scheduled flights next 2 months (pie) -->
-  <div class="col-12 col-md-6">
-    <div class="card p-4 shadow-sm card-chart">
-      <h6 class="text-center">Flights scheduled – next 2 months</h6>
-      <canvas id="schedPie" height="160" class="d-none"></canvas>
-      <div   id="schedPie-empty" class="nodata d-none">No flights</div>
-    </div>
-  </div>
 </div>
 {% endblock %}
 
-{# ── JSON blobs ─────────────────────────────────────────────────────── #}
 {% block scripts %}
 <script id="monthly-data" type="application/json">
   {{ monthly_rev | tojson | safe }}
@@ -187,8 +335,18 @@
 (async () => {
   await import("https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js");
 
-  const PAL  = ["#0d6efd","#fd7e14","#20c997","#6610f2",
-                "#198754","#ffc107","#dc3545","#6c757d"];
+  // Simple colors
+  const PAL  = [
+    "#0d6efd", // Blue
+    "#fd7e14", // Orange
+    "#20c997", // Teal
+    "#6610f2", // Purple
+    "#198754", // Green
+    "#ffc107", // Yellow
+    "#dc3545", // Red
+    "#6c757d"  // Gray
+  ];
+  
   const col  = i => PAL[i % PAL.length];
   const data = id => JSON.parse(document.getElementById(id).textContent || "[]");
 
@@ -197,21 +355,53 @@
                        el.style.removeProperty("display"); return el; };
   const badge = id => document.getElementById(id)?.classList.remove("d-none");
 
+  // Bar chart config
   const stacked = (ctx,l,a,b,la,lb,ca,cb) =>
-    new Chart(ctx,{type:"bar",
-      data:{labels:l,datasets:[
-        {label:la,data:a,backgroundColor:ca,borderWidth:0},
-        {label:lb,data:b,backgroundColor:cb,borderWidth:0}]},
-      options:{responsive:true,
-        scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}},
-        plugins:{legend:{position:"bottom"}}}});
+    new Chart(ctx,{
+      type: "bar",
+      data: {
+        labels: l,
+        datasets: [
+          {
+            label: la,
+            data: a,
+            backgroundColor: ca,
+            borderWidth: 0
+          },
+          {
+            label: lb,
+            data: b,
+            backgroundColor: cb,
+            borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            stacked: true
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    });
 
   /* monthly revenue */
   (() => {
     const r=data("monthly-data"), l=r.map(x=>x.yr_mon),
           d=r.map(x=>x.direct_rev), a=r.map(x=>x.agent_rev);
     if(!(l.length&&(d.some(Boolean)||a.some(Boolean)))) return badge("monthlyChart-empty");
-    stacked(show("monthlyChart"),l,d,a,"Direct","Agent",col(0),col(1));
+    stacked(show("monthlyChart"),l,d,a,"Direct Sales","Agent Sales",col(0),col(1));
   })();
 
   /* dest revenue */
@@ -219,7 +409,7 @@
     const r=data("dest-data"), l=r.map(x=>x.airport),
           d=r.map(x=>x.direct_rev), a=r.map(x=>x.agent_rev);
     if(!(l.length&&(d.some(Boolean)||a.some(Boolean)))) return badge("destChart-empty");
-    stacked(show("destChart"),l,d,a,"Direct","Agent",col(2),col(3));
+    stacked(show("destChart"),l,d,a,"Direct Sales","Agent Sales",col(2),col(3));
   })();
 
   /* flights of top-N customers / month */
@@ -232,22 +422,46 @@
     const custs=[...new Set(rows.map(r=>r.customer))].slice(0,{{ cust_limit }});
 
     const ds=custs.map((c,i)=>({
-      label:c,data:months.map(m=>{
+      label: c,
+      data: months.map(m => {
         const hit=rows.find(r=>r.customer===c&&r.yr_mon===m);
         return hit?hit.flights:0;
-      }),backgroundColor:col(i),borderWidth:0}));
+      }),
+      backgroundColor: col(i),
+      borderWidth: 0
+    }));
 
     const ctx=show("custMonthChart");
     if(!ds.some(d=>d.data.some(Boolean))) return badge("custMonthChart-empty");
 
-    new Chart(ctx,{type:"bar",
-      data:{labels:months,datasets:ds},
-      options:{responsive:true,scales:{x:{stacked:true},
-        y:{stacked:true,beginAtZero:true,ticks:{precision:0}}},
-        plugins:{legend:{position:"bottom"}}}});
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: months,
+        datasets: ds
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            stacked: true
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    });
   })();
 
-  /* scheduled flights next 2 mo – pie */
+  /* scheduled flights next 2 mo – simple 2D pie */
   (() => {
     const r=data("sched-data");
     if(!r.length) return badge("schedPie-empty");
@@ -255,9 +469,27 @@
     const l=r.map(x=>x.airport), v=r.map(x=>x.cnt);
     if(!v.some(Boolean)) return badge("schedPie-empty");
 
-    new Chart(show("schedPie"),{type:"pie",
-      data:{labels:l,datasets:[{data:v,backgroundColor:l.map((_,i)=>col(i))}]},
-      options:{responsive:true,plugins:{legend:{position:"bottom"}}}});
+    new Chart(show("schedPie"), {
+      type: "pie",
+      data: {
+        labels: l,
+        datasets: [{
+          data: v,
+          backgroundColor: l.map((_,i)=>col(i)),
+          borderWidth: 1,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "right"
+          }
+        }
+      }
+    });
   })();
 
   /* helper for top charts */
@@ -265,7 +497,7 @@
     const r=data(tag); if(!r.length) return badge(empty);
     const l=r.map(x=>x.airport), d=r.map(x=>x.direct_rev), a=r.map(x=>x.agent_rev);
     if(!(d.some(Boolean)||a.some(Boolean))) return badge(empty);
-    stacked(show(cvs),l,d,a,"Direct","Agent",ca,cb);
+    stacked(show(cvs),l,d,a,"Direct Sales","Agent Sales",ca,cb);
   };
   top("top3m-data","top3mChart","top3mChart-empty",col(4),col(5));
   top("top1y-data","top1yChart","top1yChart-empty",col(6),col(7));

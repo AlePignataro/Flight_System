@@ -1,71 +1,361 @@
-{# ── templates/homepage.html ─────────────────────────────────────────── #}
 {% extends "base.html" %}
 {% block title %}Dashboard – Flight IQ{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Custom styles for homepage */
+    .welcome-banner {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--brand-primary);
+    }
+    
+    .welcome-banner h2 {
+        margin-bottom: 0.5rem;
+        color: #333;
+        font-weight: 600;
+    }
+    
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .action-buttons .btn {
+        transition: all 0.2s;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+    }
+    
+    .action-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .filters-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    
+    .filters-card-header {
+        background-color: #0d6efd;
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+    }
+    
+    .filters-card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Improved table styling for better readability */
+    .flights-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #fff;
+    }
+    
+    .flights-table th {
+        background-color: #0d6efd;
+        color: white;
+        text-align: left;
+        padding: 1rem;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .flights-table tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    .flights-table tr:nth-child(odd) {
+        background-color: #fff;
+    }
+    
+    .flights-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        color: #333;
+    }
+    
+    .flights-table tr:hover {
+        background-color: rgba(13, 110, 253, 0.08);
+    }
+
+    /* Improved status badges */
+    .flight-status {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .flight-status.on-time {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .flight-status.delayed {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+    
+    .flight-status.cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .flight-status.upcoming {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    /* Table header for better visibility */
+    .flights-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #eee;
+    }
+    
+    .flights-header h3 {
+        margin-bottom: 0;
+        color: #333;
+    }
+    
+    .flights-count {
+        margin-left: 0.5rem;
+        background-color: #0d6efd;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    /* Responsive table */
+    @media (max-width: 768px) {
+        .flights-table, .flights-table tbody, .flights-table tr, .flights-table td {
+            display: block;
+        }
+        
+        .flights-table thead {
+            display: none;
+        }
+        
+        .flights-table tr {
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #fff;
+        }
+        
+        .flights-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: right;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .flights-table td:last-child {
+            border-bottom: none;
+        }
+        
+        .flights-table td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            text-align: left;
+            color: #495057;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-
-<header class="my-4">
-    {% if user_type == 'Customer' %}
-        <h2>Welcome, {{ first_name }} {{ last_name }}!</h2>
-    {% elif user_type == 'Booking Agent' %}
-        <h2>Booking-agent panel — {{ email }}</h2>
-        {% if airline_names %}
-            <p class="text-muted mb-0">
-                Approved airline{% if ',' in airline_names %}s{% endif %}:
-                {{ airline_names }}
-            </p>
+<div class="container">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner shadow-sm">
+        {% if user_type == 'Customer' %}
+            <h2><i class="fas fa-user-circle me-2"></i>Welcome, {{ first_name }} {{ last_name }}!</h2>
+        {% elif user_type == 'Booking Agent' %}
+            <h2><i class="fas fa-briefcase me-2"></i>Booking Agent Dashboard</h2>
+            {% if airline_names %}
+                <p class="text-muted mb-0">
+                    Approved airline{% if ',' in airline_names %}s{% endif %}:
+                    <strong>{{ airline_names }}</strong>
+                </p>
+            {% endif %}
+        {% elif user_type == 'Airline Staff' %}
+            <h2><i class="fas fa-id-badge me-2"></i>Welcome, {{ first_name }} {{ last_name }}</h2>
+            <p class="text-muted mb-0">Airline: <strong>{{ airline_name }}</strong></p>
         {% endif %}
-    {% elif user_type == 'Airline Staff' %}
-        <h2>Welcome, {{ first_name }} {{ last_name }}</h2>
-        <p class="text-muted mb-0">Airline: {{ airline_name }}</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% for cat, msg in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+            {% if cat == 'success' %}<i class="fas fa-check-circle me-2"></i>{% else %}<i class="fas fa-exclamation-circle me-2"></i>{% endif %}
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        {% if user_type == 'Customer' %}
+            <a class="btn btn-outline-primary" href="{{ url_for('customer_flight_search') }}">
+                <i class="fas fa-search me-1"></i> Search Flights
+            </a>
+            <a class="btn btn-outline-primary" href="{{ url_for('customer_past_flights') }}">
+                <i class="fas fa-history me-1"></i> Past Flights
+            </a>
+            <a class="btn btn-outline-primary" href="{{ url_for('customer_spending') }}">
+                <i class="fas fa-chart-line me-1"></i> Track Spending
+            </a>
+        {% elif user_type == 'Booking Agent' %}
+            {% if airline_names %}       
+                <a class="btn btn-outline-primary" href="{{ url_for('agent_flight_search') }}">
+                    <i class="fas fa-search me-1"></i> Search/Book
+                </a>
+                <a class="btn btn-outline-primary" href="{{ url_for('agent_past_flights') }}">
+                    <i class="fas fa-history me-1"></i> Past Flights
+                </a>
+                <a class="btn btn-outline-primary" href="{{ url_for('agent_commission') }}">
+                    <i class="fas fa-money-bill-wave me-1"></i> Commission
+                </a>
+                <a class="btn btn-outline-primary" href="{{ url_for('agent_top_customers') }}">
+                    <i class="fas fa-trophy me-1"></i> Top Customers
+                </a>
+            {% endif %}
+        {% elif user_type == 'Airline Staff' %}
+            <a class="btn btn-outline-primary" href="{{ url_for('staff_flights') }}">
+                <i class="fas fa-plane me-1"></i> My Flights
+            </a>
+            <a class="btn btn-outline-primary" href="{{ url_for('staff_analytics') }}">
+                <i class="fas fa-chart-bar me-1"></i> Analytics
+            </a>
+            <a class="btn btn-outline-primary" href="{{ url_for('staff_view_booking_agents') }}">
+                <i class="fas fa-users me-1"></i> Booking Agents
+            </a>
+            <a class="btn btn-outline-primary" href="{{ url_for('staff_customers') }}">
+                <i class="fas fa-user-friends me-1"></i> Customers
+            </a>
+            {% if 'Admin' in permissions %}
+                <a class="btn btn-success" href="{{ url_for('staff_new_flight') }}">
+                    <i class="fas fa-plus me-1"></i> Create Flight
+                </a>
+                <a class="btn btn-success" href="{{ url_for('staff_add_airplane') }}">
+                    <i class="fas fa-plus me-1"></i> Add Airplane
+                </a>
+                <a class="btn btn-success" href="{{ url_for('staff_add_airport') }}">
+                    <i class="fas fa-plus me-1"></i> Add Airport
+                </a>
+                <a class="btn btn-success" href="{{ url_for('staff_manage_permissions') }}">
+                    <i class="fas fa-user-shield me-1"></i> Manage Permissions
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <!-- Filter Cards -->
+    <div class="filters-card">
+        <div class="filters-card-header">
+            <i class="fas fa-filter me-2"></i>Filter Flights
+        </div>
+        <div class="filters-card-body">
+            {% if user_type == 'Customer' %}
+                {% include "partials/customer_filters.html" %}
+            {% elif user_type == 'Booking Agent' %}
+                {% include "partials/agent_filters.html" %}
+            {% elif user_type == 'Airline Staff' %}
+                {% include "partials/staff_filters.html" %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Flights Table -->
+    <div class="flights-header">
+        <h3><i class="fas fa-plane-departure me-2"></i>Upcoming Flights</h3>
+        <span class="flights-count">{{ upcoming_flights|length }}</span>
+    </div>
+
+    {% set rows = upcoming_flights %}
+    {% if rows %}
+        <div class="table-responsive">
+            <table class="flights-table">
+                <thead>
+                    <tr>
+                        <th>Flight #</th>
+                        <th>Airline</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Departure</th>
+                        <th>Status</th>
+                        {% if user_type == 'Airline Staff' and is_operator %}
+                            <th>Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rows %}
+                    <tr>
+                        <td data-label="Flight #">{{ r.Flight_ID }}</td>
+                        <td data-label="Airline">{{ r.Airline }}</td>
+                        <td data-label="From">{{ r.Departure_Airport }}</td>
+                        <td data-label="To">{{ r.Arrival_Airport }}</td>
+                        <td data-label="Departure">{{ r.Departure_Date }} <span class="text-muted">{{ r.Departure_Time }}</span></td>
+                        <td data-label="Status">
+                            <span class="flight-status 
+                                {% if r.Status_ == 'On-time' %}on-time
+                                {% elif r.Status_ == 'Delayed' %}delayed
+                                {% elif r.Status_ == 'Cancelled' %}cancelled
+                                {% else %}upcoming{% endif %}">
+                                {{ r.Status_ }}
+                            </span>
+                        </td>
+                        {% if user_type == 'Airline Staff' and is_operator %}
+                            <td data-label="Action">
+                                <form action="{{ url_for('airline_staff_change_status', airline=r.Airline, flight_id=r.Flight_ID) }}" method="POST" class="d-flex align-items-center">
+                                    <select name="status" class="form-select form-select-sm me-2" style="width: auto;">
+                                        <option value="Upcoming" {% if r.Status_ == 'Upcoming' %}selected{% endif %}>Upcoming</option>
+                                        <option value="On-time" {% if r.Status_ == 'On-time' %}selected{% endif %}>On-time</option>
+                                        <option value="Delayed" {% if r.Status_ == 'Delayed' %}selected{% endif %}>Delayed</option>
+                                        <option value="Cancelled" {% if r.Status_ == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                </form>
+                            </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>No upcoming flights found.
+        </div>
     {% endif %}
-</header>
-
-{% for cat, msg in get_flashed_messages(with_categories=True) %}
-  <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }}">{{ msg }}</div>
-{% endfor %}
-
-<nav class="mt-3 d-flex flex-wrap gap-2">
-  {% if user_type == 'Customer' %}
-      <a class="btn btn-outline-secondary" href="{{ url_for('customer_past_flights') }}">Past flights</a>
-      <a class="btn btn-secondary" href="{{ url_for('customer_spending') }}">Track spending</a>
-  {% elif user_type == 'Booking Agent' %}
-      {% if airline_names %}       
-          <a class="btn btn-outline-primary" href="{{ url_for('agent_flight_search') }}">Search / Book ticket</a>
-          <a class="btn btn-outline-primary" href="{{ url_for('agent_past_flights') }}">Past flights</a>
-          <a class="btn btn-outline-primary" href="{{ url_for('agent_commission') }}">Commission</a>
-          <a class="btn btn-outline-primary" href="{{ url_for('agent_top_customers') }}">Top customers</a>
-      {% endif %}
-  {% elif user_type == 'Airline Staff' %}
-      <a class="btn btn-outline-primary" href="{{ url_for('staff_flights') }}">My flights</a>
-      <a class="btn btn-outline-primary" href="{{ url_for('staff_analytics') }}">Analytics</a>
-      <a class="btn btn-outline-primary" href="{{ url_for('staff_view_booking_agents') }}">Booking agents</a>
-      <a class="btn btn-outline-primary" href="{{ url_for('staff_customers') }}">Customers</a>
-      {% if 'Admin' in permissions %}
-          <a class="btn btn-success" href="{{ url_for('staff_new_flight') }}">+ Create flight</a>
-          <a class="btn btn-success" href="{{ url_for('staff_add_airplane') }}">+ Add airplane</a>
-          <a class="btn btn-success" href="{{ url_for('staff_add_airport') }}">+ Add airport</a>
-          <a class="btn btn-success" href="{{ url_for('staff_manage_permissions') }}">+ Manage permissions</a>
-      {% endif %}
-  {% endif %}
-</nav>
-
-{# ── collapsible filter only for Customer (redirects to /customer/flight_search) #}
-{% if user_type == 'Customer' %}
-    {% include "partials/customer_filters.html" %}
-{% elif user_type == 'Booking Agent' %}
-    {% include "partials/agent_filters.html" %}
-{% elif user_type == 'Airline Staff' %}
-    {% include "partials/staff_filters.html" %}
-{% endif %}
-
-<section class="mt-4">
-  {% set rows = upcoming_flights %}
-  {% if user_type == 'Airline Staff' and is_operator %}
-      {% include "partials/flight_table_airline_staff_with_change_status.html" %}
-  {% else %}
-      {% include "partials/flight_table.html" %}
-  {% endif %}
-</section>
-
+</div>
 {% endblock %}
