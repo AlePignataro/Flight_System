@@ -73,19 +73,24 @@ def main() -> None:
             except BuildError:
                 return "#"
         return dict(safe_url_for=safe_url_for)
+    
+    @app.route("/features")
+    def features():
+        return render_template("features.html")
 
     # --------------------------- public -------------------------
     @app.route("/", methods=["GET", "POST"])
     def base():
         flights: list[dict] = []
         src = dest = date_str = ""
-
-        airport_labels = public_db.list_airport_labels()      # NEW
+        limit = int(request.args.get("limit", 15))  # Default to 15 flights, get from query param
+        airport_labels = public_db.list_airport_labels()
 
         if request.method == "POST":
-            src  = request.form.get("source_city", "").strip()
+            src = request.form.get("source_city", "").strip()
             dest = request.form.get("destination_city", "").strip()
             date_str = request.form.get("date", "").strip()
+            limit = int(request.form.get("limit", 15))  # Get from form if provided
 
             # if the user picked a label like "Boston-BOS", keep only the code
             if "-" in src:
@@ -96,16 +101,17 @@ def main() -> None:
             flights = public_db.view_flights(
                 source=src or None,
                 destination=dest or None,
-                on_or_after=(date.fromisoformat(date_str) if date_str else None)
+                on_or_after=(date.fromisoformat(date_str) if date_str else None),
+                limit=limit
             )
         else:
-            flights = public_db.view_upcoming_flights()
+            flights = public_db.view_upcoming_flights(limit=limit)
 
         return render_template(
             "home.html",
             flights=flights,
-            airport_labels=airport_labels,          # NEW
-            form_values={"src": src, "dest": dest, "date": date_str},
+            airport_labels=airport_labels,
+            form_values={"src": src, "dest": dest, "date": date_str, "limit": limit},
         )
 
     @app.route("/flight_status")
@@ -1178,6 +1184,8 @@ def main() -> None:
     def logout():
         session.clear()                       
         return render_template("logout.html")
+    
+
     # --------------------------- run ----------------------------
     app.run(debug=True)
 

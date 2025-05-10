@@ -1,0 +1,139 @@
+{# ── templates/features.html ──────────────────────────────────────────── #}
+{% extends "base.html" %}
+{% block title %}Features – Flight IQ{% endblock %}
+
+{% block extra_css %}
+<style>
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    color: #fff;
+    border-radius: 0.75rem;
+    background-color: #0d6efd;
+  }
+  
+  .feature-card {
+    height: 100%;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  
+  .features-header {
+    padding: 3rem 0;
+    background-color: #f8f9fa;
+    margin-bottom: 3rem;
+    border-radius: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="features-header text-center">
+  <h1 class="display-5 fw-bold">Flight IQ Features</h1>
+  <div class="col-lg-6 mx-auto">
+    <p class="lead mb-4">Discover how Flight IQ makes managing air travel simple and efficient.</p>
+  </div>
+</div>
+
+<div class="row g-4 py-5">
+  <!-- Feature 1 -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 border-0 shadow-sm">
+      <div class="card-body text-center p-4">
+        <div class="feature-icon bg-primary bg-gradient">
+          <i class="bi bi-search"></i>
+        </div>
+        <h3 class="fs-4 my-3">Smart Flight Search</h3>
+        <p>Find the perfect flight with our advanced filtering system. Search by date, airline, price, and more to find exactly what you need.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Feature 2 -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 border-0 shadow-sm">
+      <div class="card-body text-center p-4">
+        <div class="feature-icon bg-primary bg-gradient">
+          <i class="bi bi-graph-up"></i>
+        </div>
+        <h3 class="fs-4 my-3">Analytics Dashboard</h3>
+        <p>Track your spending, view travel patterns, and analyze your booking history with our intuitive analytics tools.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Feature 3 -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 border-0 shadow-sm">
+      <div class="card-body text-center p-4">
+        <div class="feature-icon bg-primary bg-gradient">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <h3 class="fs-4 my-3">Secure Booking</h3>
+        <p>Book with confidence knowing all transactions are secure and your personal information is protected.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Feature 4 -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 border-0 shadow-sm">
+      <div class="card-body text-center p-4">
+        <div class="feature-icon bg-primary bg-gradient">
+          <i class="bi bi-people"></i>
+        </div>
+        <h3 class="fs-4 my-3">Multiple User Roles</h3>
+        <p>Whether you're a customer, booking agent, or airline staff, Flight IQ offers tailored features for your specific needs.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Feature 5 -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 border-0 shadow-sm">
+      <div class="card-body text-center p-4">
+        <div class="feature-icon bg-primary bg-gradient">
+          <i class="bi bi-bell"></i>
+        </div>
+        <h3 class="fs-4 my-3">Status Notifications</h3>
+        <p>Stay informed with real-time updates about your flight status, changes, and important travel information.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Feature 6 -->
+  <div class="col-md-4">
+    <div class="card feature-card h-100 border-0 shadow-sm">
+      <div class="card-body text-center p-4">
+        <div class="feature-icon bg-primary bg-gradient">
+          <i class="bi bi-calendar-check"></i>
+        </div>
+        <h3 class="fs-4 my-3">Trip Management</h3>
+        <p>Easily manage your bookings, view past trips, and plan future travel all in one convenient location.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-5">
+  <div class="col-lg-8 mx-auto">
+    <div class="card border-0 shadow">
+      <div class="card-body p-5 text-center">
+        <h2 class="mb-4">Ready to experience Flight IQ?</h2>
+        <p class="lead mb-4">Join thousands of travelers who are already enjoying the benefits of our platform.</p>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg px-4 me-md-2">Sign Up Now</a>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg px-4">Log In</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

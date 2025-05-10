@@ -1,191 +1,193 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Flight IQ</title>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Core styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Login – Flight IQ{% endblock %}
 
-<!-- Navbar -->
-<nav class="navbar">
-    <div class="container">
-        <a href="/" class="navbar-brand">
-            <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Flight IQ Logo">
-            Flight IQ
-        </a>
-        <div class="links">
-            <a href="/signup">Sign-up</a>
-        </div>
-    </div>
-</nav>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<style>
+  .login-box {
+    max-width: 450px;
+    margin: 60px auto;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    background-color: #fff;
+  }
+  
+  .role-selector {
+    display: flex;
+    margin-bottom: 1.5rem;
+  }
+  
+  .role-option {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+  }
+  
+  .role-option:hover {
+    border-color: #1A3A6E;
+    background-color: #f8f9fa;
+  }
+  
+  .role-option.active {
+    border-color: #1A3A6E;
+    background-color: rgba(26, 58, 110, 0.05);
+  }
+  
+  .role-option i {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #1A3A6E; /* Dark blue color for icons */
+  }
+  
+  /* Ensure icon color doesn't change when selected */
+  .role-option.active i {
+    color: #1A3A6E;
+  }
+  
+  /* Ensure text color stays dark */
+  .role-option.active span {
+    color: inherit;
+  }
+  
+  .form-control:focus {
+    border-color: #1A3A6E;
+    box-shadow: 0 0 0 0.2rem rgba(26, 58, 110, 0.25);
+  }
+</style>
+{% endblock %}
 
-<!-- Login Container -->
-<div class="auth-container">
-    <div class="auth-content">
-        <!-- Hero Title (only shown on larger screens) -->
-        <div class="auth-hero d-none d-md-block">
-            <h1>Flight IQ</h1>
-            <p>Where your next adventure starts</p>
-        </div>
-        
-        <!-- Login Form Card -->
-        <div class="auth-card">
-            <h2>Login to Your Account</h2>
-            
-            {% if error %}
-            <div class="auth-error">
-                <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
-            </div>
-            {% endif %}
-            
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="auth-error">
-                            <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            <form action="{{ url_for('login') }}" method="POST" novalidate>
-                <!-- Role Selection -->
-                <div class="auth-form-group">
-                    <label for="role">Role</label>
-                    <select id="role" name="role" class="form-select" required>
-                        <option value="customer" {% if role == 'customer' %}selected{% endif %}>Customer</option>
-                        <option value="agent" {% if role == 'agent' %}selected{% endif %}>Booking Agent</option>
-                        <option value="staff" {% if role == 'staff' %}selected{% endif %}>Airline Staff</option>
-                    </select>
-                </div>
-                
-                <!-- Email Field (for Customer & Agent) -->
-                <div class="auth-form-group" id="email-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" class="form-control" placeholder="name@example.com">
-                </div>
-                
-                <!-- Username Field (for Staff) -->
-                <div class="auth-form-group" id="username-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username">
-                </div>
-                
-                <!-- Booking Agent ID (for Agent only) -->
-                <div class="auth-form-group" id="agent-id-group">
-                    <label for="booking_agent_id">Booking Agent ID</label>
-                    <input type="text" id="booking_agent_id" name="booking_agent_id" class="form-control" placeholder="Enter your agent ID">
-                </div>
-                
-                <!-- Password Field -->
-                <div class="auth-form-group">
-                    <label for="password">Password</label>
-                    <div class="password-input-wrapper position-relative">
-                        <input type="password" id="password" name="password" class="form-control" required>
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer;">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Submit Button -->
-                <button type="submit" class="auth-btn">
-                    <i class="fas fa-sign-in-alt me-2"></i>Login
-                </button>
-            </form>
-            
-            <!-- Sign Up Link -->
-            <div class="auth-alt-action">
-                <p>Don't have an account? <a href="{{ url_for('signup') }}">Register here</a></p>
-            </div>
-        </div>
-    </div>
+{% block content %}
+<div class="title text-center my-4">
+  <h1>Flight IQ</h1>
+  <p class="lead">Where your next adventure starts</p>
 </div>
 
-<!-- Footer -->
-<footer class="bg-dark text-white py-4 mt-5">
-    <div class="container">
-        <!-- Copyright -->
-        <div class="text-center">
-            <p class="mb-0">&copy; 2025 Flight IQ. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
+{# ── Login box ───────────────────────────────────────────────────── #}
+<div class="login-box mx-auto">
+  <h2 class="mb-3 text-center">Login</h2>
 
-<!-- Scripts -->
+  <form action="{{ url_for('login') }}" method="POST" novalidate>
+    <!-- Role picker with icons -->
+    <div class="mb-3" id="role-group">
+      <label class="form-label">Select your role:</label>
+      <div class="role-selector">
+        <div class="role-option active" data-role="customer" onclick="selectRole('customer')">
+          <i class="fas fa-user"></i>
+          <span>Customer</span>
+        </div>
+        <div class="role-option" data-role="agent" onclick="selectRole('agent')">
+          <i class="fas fa-briefcase"></i>
+          <span>Booking Agent</span>
+        </div>
+        <div class="role-option" data-role="staff" onclick="selectRole('staff')">
+          <i class="fas fa-plane"></i>
+          <span>Airline Staff</span>
+        </div>
+      </div>
+      <input type="hidden" id="role" name="role" value="customer" required>
+    </div>
+
+    <!-- Email (Customer & Agent) -->
+    <div class="mb-3" id="email-group">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" id="email" name="email" placeholder="your@email.com"
+             class="form-control">
+    </div>
+
+    <!-- Username (Staff) -->
+    <div class="mb-3" id="username-group" style="display: none;">
+      <label for="username" class="form-label">Username</label>
+      <input type="text" id="username" name="username" placeholder="your_username" 
+             class="form-control">
+    </div>
+
+    <!-- Booking-agent ID (Agent only) -->
+    <div class="mb-3" id="agent-id-group" style="display: none;">
+      <label for="booking_agent_id" class="form-label">Booking Agent&nbsp;ID</label>
+      <input type="text" id="booking_agent_id" name="booking_agent_id" placeholder="Agent ID"
+             class="form-control">
+    </div>
+
+    <!-- Password -->
+    <div class="mb-4" id="password-group">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" id="password" name="password" placeholder="••••••••"
+             class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Login</button>
+  </form>
+
+  <div class="register-link text-center mt-3">
+    <p class="mb-0">
+      Don't have an account?
+      <a href="{{ url_for('signup') }}">Register here</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
-    // Toggle password visibility
-    function togglePasswordVisibility() {
-        const passwordInput = document.getElementById('password');
-        const icon = document.querySelector('.password-toggle i');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            passwordInput.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
+const roleSelect = document.getElementById('role');
+const emailGroup = document.getElementById('email-group');
+const usernameGroup = document.getElementById('username-group');
+const agentIdGroup = document.getElementById('agent-id-group');
+
+const emailInput = document.getElementById('email');
+const usernameInput = document.getElementById('username');
+const agentIdInput = document.getElementById('booking_agent_id');
+
+// Function to select a role with visual feedback
+function selectRole(role) {
+  // Update hidden input
+  roleSelect.value = role;
+  
+  // Update visual selection
+  document.querySelectorAll('.role-option').forEach(option => {
+    if (option.dataset.role === role) {
+      option.classList.add('active');
+    } else {
+      option.classList.remove('active');
     }
-    
-    // Form fields visibility based on role
-    const roleSelect = document.getElementById('role');
-    const emailGroup = document.getElementById('email-group');
-    const usernameGroup = document.getElementById('username-group');
-    const agentIdGroup = document.getElementById('agent-id-group');
-    
-    const emailInput = document.getElementById('email');
-    const usernameInput = document.getElementById('username');
-    const agentIdInput = document.getElementById('booking_agent_id');
-    
-    function showOnly(...groups) {
-        // Hide all form groups
-        [emailGroup, usernameGroup, agentIdGroup].forEach(group => {
-            group.style.display = 'none';
-        });
-        
-        // Show only the selected groups
-        groups.forEach(group => {
-            group.style.display = 'block';
-        });
-    }
-    
-    function updateFormFields() {
-        const role = roleSelect.value;
-        
-        // Reset required flags
-        [emailInput, usernameInput, agentIdInput].forEach(input => {
-            input.required = false;
-        });
-        
-        // Show/hide appropriate fields based on role
-        if (role === 'customer') {
-            showOnly(emailGroup);
-            emailInput.required = true;
-        } else if (role === 'agent') {
-            showOnly(emailGroup, agentIdGroup);
-            emailInput.required = true;
-            agentIdInput.required = true;
-        } else if (role === 'staff') {
-            showOnly(usernameGroup);
-            usernameInput.required = true;
-        }
-    }
-    
-    // Run on page load and whenever role changes
-    document.addEventListener('DOMContentLoaded', updateFormFields);
-    roleSelect.addEventListener('change', updateFormFields);
+  });
+  
+  // Reset required flags
+  [emailInput, usernameInput, agentIdInput].forEach(f => f.required = false);
+  
+  // Show/hide appropriate fields
+  if (role === 'customer') {
+    showOnly(emailGroup);
+    emailInput.required = true;
+  }
+  else if (role === 'agent') {
+    showOnly(emailGroup, agentIdGroup);
+    emailInput.required = true;
+    agentIdInput.required = true;
+  }
+  else if (role === 'staff') {
+    showOnly(usernameGroup);
+    usernameInput.required = true;
+  }
+}
+
+function showOnly(...groups) {
+  /* hide all */
+  [emailGroup, usernameGroup, agentIdGroup].forEach(g => g.style.display = 'none');
+  /* show selected */
+  groups.forEach(g => g.style.display = 'block');
+}
+
+// Set default role on page load
+window.onload = function() {
+  selectRole('customer');
+};
 </script>
-</body>
-</html>
+{% endblock %}

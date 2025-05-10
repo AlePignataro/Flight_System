@@ -67,40 +67,48 @@
     to { opacity: 1; transform: translateY(0); }
   }
   
-  /* Role Selection */
-  .role-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-  
-  .role-option input[type="radio"] {
-    display: none;
-  }
-  
-  .role-option label {
+  /* Role Selection - Login Style */
+  .role-selector {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.5rem;
-    border: 2px solid #e9ecef;
-    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+  }
+  
+  .role-option {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
     cursor: pointer;
-    transition: all 0.3s;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+  }
+  
+  .role-option:hover {
+    border-color: #1A3A6E;
+    background-color: #f8f9fa;
+  }
+  
+  .role-option.active {
+    border-color: #1A3A6E;
+    background-color: rgba(26, 58, 110, 0.05);
   }
   
   .role-option i {
-    font-size: 2rem;
-    margin-bottom: 0.75rem;
-    color: var(--primary);
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #1A3A6E; /* Dark blue color for icons */
   }
   
-  .role-option input[type="radio"]:checked + label {
-    border-color: var(--primary);
-    background-color: rgba(26, 58, 110, 0.05);
-    transform: translateY(-5px);
-    box-shadow: var(--shadow);
+  /* Ensure icon color doesn't change when selected */
+  .role-option.active i {
+    color: #1A3A6E;
+  }
+  
+  /* Ensure text color stays dark */
+  .role-option.active span {
+    color: inherit;
   }
   
   /* Form Layout */
@@ -152,33 +160,32 @@
       </div>
       
       <form id="signup-form" method="post" novalidate>
-        <!-- Step 1: Choose Role -->
+        <!-- Step 1: Choose Role with login-style selector -->
         <div class="form-section active" id="section-1">
           <h3 class="form-section-title">Choose Your Role</h3>
           
-          <div class="role-options">
-            <div class="role-option">
-              <input type="radio" id="role-customer" name="role" value="customer" checked>
-              <label for="role-customer">
+          <!-- Role selector similar to login page -->
+          <div class="mb-3" id="role-group">
+            <label class="form-label">Select your role:</label>
+            <div class="role-selector">
+              <div class="role-option active" data-role="customer" onclick="selectRoleVisual('customer')">
                 <i class="fas fa-user"></i>
                 <span>Customer</span>
-              </label>
-            </div>
-            
-            <div class="role-option">
-              <input type="radio" id="role-agent" name="role" value="agent">
-              <label for="role-agent">
+              </div>
+              <div class="role-option" data-role="agent" onclick="selectRoleVisual('agent')">
                 <i class="fas fa-briefcase"></i>
                 <span>Booking Agent</span>
-              </label>
-            </div>
-            
-            <div class="role-option">
-              <input type="radio" id="role-staff" name="role" value="staff">
-              <label for="role-staff">
-                <i class="fas fa-id-badge"></i>
+              </div>
+              <div class="role-option" data-role="staff" onclick="selectRoleVisual('staff')">
+                <i class="fas fa-plane"></i>
                 <span>Airline Staff</span>
-              </label>
+              </div>
+            </div>
+            <!-- Keep the original radio buttons for compatibility but hide them -->
+            <div style="display: none;">
+              <input type="radio" id="role-customer" name="role" value="customer" checked>
+              <input type="radio" id="role-agent" name="role" value="agent">
+              <input type="radio" id="role-staff" name="role" value="staff">
             </div>
           </div>
           
@@ -388,6 +395,24 @@
   // Form field collections
   const customerRequiredFields = customerFields.querySelectorAll('input[required]');
   const staffRequiredFields = staffFields.querySelectorAll('input[required]');
+  
+  // Function to select role visually (new login-style)
+  function selectRoleVisual(role) {
+    // Update visual selection
+    document.querySelectorAll('.role-option').forEach(option => {
+      if (option.dataset.role === role) {
+        option.classList.add('active');
+      } else {
+        option.classList.remove('active');
+      }
+    });
+    
+    // Update the actual radio button
+    document.getElementById(`role-${role}`).checked = true;
+    
+    // Trigger the existing event handler to ensure form updates correctly
+    document.getElementById(`role-${role}`).dispatchEvent(new Event('change'));
+  }
   
   // Initialize form
   function initForm() {

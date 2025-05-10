@@ -13,6 +13,7 @@ class PublicDatabaseService(AbstractDatabaseService):
         source: Optional[str] = None,
         destination: Optional[str] = None,
         on_or_after: Optional[date] = None,
+        limit: int = 5
     ) -> List[Dict]:
         sql = """
             SELECT  F.*,
@@ -22,8 +23,10 @@ class PublicDatabaseService(AbstractDatabaseService):
             JOIN    Airport  dep ON dep.Name = F.Departure_Airport
             JOIN    Airport  arr ON arr.Name = F.Arrival_Airport
             WHERE   F.Status_ = 'Upcoming'
+                    AND F.Departure_Date >= CURDATE()
                   {src_filter} {dst_filter} {date_filter}
             ORDER BY F.Departure_Date, F.Departure_Time
+            LIMIT %s
         """
 
         src_filter  = "AND (F.Departure_Airport = %s OR dep.City = %s)" if source else ""
@@ -36,6 +39,7 @@ class PublicDatabaseService(AbstractDatabaseService):
                 (source, source)           if source      else (),
                 (destination, destination) if destination else (),
                 (on_or_after,)             if on_or_after else (),
+                (limit,)
             )
             for x in grp
         )
@@ -48,7 +52,7 @@ class PublicDatabaseService(AbstractDatabaseService):
     
     def list_airport_labels(self) -> List[str]:
         """
-        Returns labels like “New York-JFK”, “Los Angeles-LAX”, …,
+        Returns labels like "New York-JFK", "Los Angeles-LAX", …,
         one per active airport, sorted A-Z (case-insensitive).
         """
         rows = self._fetchall(
@@ -70,7 +74,7 @@ class PublicDatabaseService(AbstractDatabaseService):
     # ------------------------------------------------------------------
     # Handy default: *all* upcoming flights
     # ------------------------------------------------------------------
-    def view_upcoming_flights(self) -> List[Dict]:
+    def view_upcoming_flights(self, limit: int = 15) -> List[Dict]:
         return self._fetchall(
             """
             SELECT  F.*,
@@ -80,9 +84,11 @@ class PublicDatabaseService(AbstractDatabaseService):
             JOIN    Airport  dep ON dep.Name = F.Departure_Airport
             JOIN    Airport  arr ON arr.Name = F.Arrival_Airport
             WHERE   F.Status_ = 'Upcoming'
+                    AND F.Departure_Date >= CURDATE()
             ORDER BY F.Departure_Date, F.Departure_Time
+            LIMIT %s
             """,
-            ()
+            (limit,)
         )
 
     # ───── existence helpers ───────────────────────────────────────
