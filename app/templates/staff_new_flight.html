@@ -329,9 +329,33 @@
         
         <div class="row g-3">
           <div class="col-md-6">
-            <label for="airplane_id" class="form-label">Airplane ID</label>
-            <input type="text" class="form-control" id="airplane_id" name="Airplane_ID" required>
-            <div class="invalid-feedback">Please provide an Airplane ID.</div>
+            <label for="airplane_id" class="form-label">Airplane</label>
+            <div class="airport-selector">
+              <select class="form-select" id="airplane_id" name="Airplane_ID" required>
+                <option value="" selected disabled>Select an airplane</option>
+                {% if airplanes %}
+                  {% for airplane in airplanes %}
+                    <option value="{{ airplane.Airplane_ID }}">
+                      Airplane {{ airplane.Airplane_ID }} ({{ airplane.Number_Seats }} seats)
+                    </option>
+                  {% endfor %}
+                {% else %}
+                  <option value="" disabled>No airplanes available</option>
+                {% endif %}
+              </select>
+              <div class="select-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg>
+              </div>
+              <div class="invalid-feedback">Please select an airplane.</div>
+              <a href="{{ url_for('staff_add_airplane') }}" class="btn-add-airport">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                Add New Airplane
+              </a>
+            </div>
           </div>
           
           <div class="col-md-6">
@@ -575,12 +599,6 @@
     // Add event listeners for airport validation
     [departureAirport, arrivalAirport].forEach(el => {
       el.addEventListener('change', validateAirports);
-    });
-    
-    // Format airplane ID to uppercase
-    const airplaneId = document.getElementById('airplane_id');
-    airplaneId.addEventListener('input', function() {
-      this.value = this.value.toUpperCase();
     });
 
     // Auto-hide flash messages after 5 seconds

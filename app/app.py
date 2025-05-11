@@ -954,7 +954,8 @@ def main() -> None:
 
         new_status = request.form["status"]  # You can add the new status here
         try:
-            staff_db.update_flight_status(flight_id, airline, new_status)  # Call to the function to update the status in the DB
+            print(new_status)
+            staff_db.update_flight_status(airline=airline,flight_id = flight_id, new_status=new_status)  # Call to the function to update the status in the DB
             flash("Flight status updated successfully.", "success")
         except Exception as e:
             flash(f"Error updating flight status: {str(e)}", "danger")
@@ -976,6 +977,9 @@ def main() -> None:
         
         # Get all available airports with city information
         airports = staff_db.get_airports_with_cities()
+        
+        # Get all airplanes for this airline
+        airplanes = staff_db.get_airline_airplanes(airline)
         
         if request.method == "POST":
             # Create a dictionary from the form data
@@ -1005,7 +1009,8 @@ def main() -> None:
         
         return render_template(
             "staff_new_flight.html",
-            airports=airports
+            airports=airports,
+            airplanes=airplanes
         )
     # ──────────────── 4. Add airplane (+ list) (Admin) ───────────────
     @app.route("/staff/airplane/new", methods=["GET", "POST"])

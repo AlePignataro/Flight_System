@@ -1,14 +1,13 @@
+{# ── improved templates/partials/flight_table.html ───────────────────── #}
 {% if rows %}
   <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="table table-striped align-middle">
       <thead>
         <tr>
           <th>Airline</th>
           <th>Flight&nbsp;#</th>
-          <th>Departure&nbsp;Airport</th>
-          <th>Departure&nbsp;Time</th>
-          <th>Arrival&nbsp;Airport</th>
-          <th>Arrival&nbsp;Time</th>
+          <th>Departure</th>
+          <th>Arrival</th>
           <th>Status</th>
           {% if has_seats %}<th>Seats&nbsp;left</th>{% endif %}
           {% if has_customer %}<th>Customer&nbsp;Email</th>{% endif %}
@@ -20,23 +19,23 @@
         <tr>
           <td>{{ r.Airline }}</td>
           <td>{{ r.Flight_ID }}</td>
-          <td>{{ r.Departure_Airport }}</td>
-          <td>{{ r.Departure_Time }}</td>
-          <td>{{ r.Arrival_Airport }}</td>
-          <td>{{ r.Arrival_Time }}</td>
+          <td>
+            <div><strong>{{ r.Departure_Airport }}</strong></div>
+            <div>{{ r.Departure_Date }}</div>
+            <div class="text-muted small">{{ r.Departure_Time }}</div>
+          </td>
+          <td>
+            <div><strong>{{ r.Arrival_Airport }}</strong></div>
+            <div>{{ r.Arrival_Date }}</div>
+            <div class="text-muted small">{{ r.Arrival_Time }}</div>
+          </td>
           <td data-label="Status">
-            <span class="status-badge 
-              {% if r.Status_ == 'On-time' %}status-on-time{% endif %}
-              {% if r.Status_ == 'Delayed' %}status-delayed{% endif %}
-              {% if r.Status_ == 'Cancelled' %}status-cancelled{% endif %}
-              {% if r.Status_ == 'Upcoming' %}status-upcoming{% endif %}
-              {% if r.Status_ == 'Arrived' %}status-arrived{% endif %}
+            <span class="badge 
+              {% if r.Status_ == 'On-time' or r.Status_ == 'Upcoming' %}bg-success{% endif %}
+              {% if r.Status_ == 'Delayed' %}bg-warning text-dark{% endif %}
+              {% if r.Status_ == 'Cancelled' %}bg-danger{% endif %}
+              {% if r.Status_ == 'Arrived' %}bg-info{% endif %}
             ">
-              {% if r.Status_ == 'On-time' %}<i class="fas fa-check-circle"></i>{% endif %}
-              {% if r.Status_ == 'Delayed' %}<i class="fas fa-clock"></i>{% endif %}
-              {% if r.Status_ == 'Cancelled' %}<i class="fas fa-times-circle"></i>{% endif %}
-              {% if r.Status_ == 'Upcoming' %}<i class="fas fa-calendar-alt"></i>{% endif %}
-              {% if r.Status_ == 'Arrived' %}<i class="fas fa-plane-arrival"></i>{% endif %}
               {{ r.Status_ }}
             </span>
           </td>
@@ -45,9 +44,49 @@
           <td>
             <div class="action-buttons">
               {% if session.get('role') == 'staff' %}
-                <a href="{{ url_for('staff_passengers', flight_id=r.Flight_ID) }}" class="btn btn-sm btn-outline-primary me-1" title="View Passengers">
-                  <i class="fas fa-users"></i>
+                <a href="{{ url_for('staff_passengers', flight_id=r.Flight_ID) }}" 
+                   class="btn btn-sm btn-outline-primary" 
+                   title="View Passengers">
+                  Passengers
                 </a>
+              {% endif %}
+              
+              {% if session.get('role') == 'customer' %}
+                <form method="post" 
+                      action="{{ url_for('customer_purchase', airline=r.Airline, flight_id=r.Flight_ID) }}"
+                      class="d-inline">
+                  <button class="btn btn-sm btn-success" type="submit">Purchase</button>
+                </form>
+              {% endif %}
+              
+              {% if session.get('role') == 'agent' %}
+                <button class="btn btn-sm btn-primary" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#bookingModal{{ r.Flight_ID }}" 
+                        type="button">Book</button>
+                
+                <!-- Booking Modal (hidden until clicked) -->
+                <div class="modal fade" id="bookingModal{{ r.Flight_ID }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Book for Customer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form method="post" 
+                              action="{{ url_for('agent_purchase', airline=r.Airline, flight_id=r.Flight_ID) }}">
+                          <div class="mb-3">
+                            <label for="customer_email" class="form-label">Customer Email</label>
+                            <input type="email" class="form-control" id="customer_email" 
+                                   name="customer_email" required>
+                          </div>
+                          <button type="submit" class="btn btn-primary">Purchase Ticket</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               {% endif %}
             </div>
           </td>

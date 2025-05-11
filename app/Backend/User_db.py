@@ -101,7 +101,7 @@ class AbstractUserDB(AbstractDatabaseService, ABC):
             params.append(airline_staff_id)
 
         sql = f"""
-            SELECT F.*
+            SELECT DISTINCT F.*
             FROM   Flight F
             LEFT  JOIN Ticket        T ON T.Airline = F.Airline   AND T.Flight_ID = F.Flight_ID
             LEFT  JOIN Airline_Staff S ON S.Airline = F.Airline
@@ -1432,3 +1432,19 @@ class AirlineStaffDB(AbstractUserDB):
             'direct_bookings': 0,
             'cancelled_flights': 0
         }
+    
+    def get_airline_airplanes(self, airline: str) -> List[Dict]:
+        """
+        Get all airplanes for a specific airline.
+        
+        Returns a list of dictionaries with airplane data:
+        [{'Airplane_ID': '123', 'Number_Seats': 200}, ...]
+        """
+        sql = """
+            SELECT Airplane_ID, Number_Seats
+            FROM Airplane
+            WHERE Airline = %s
+            ORDER BY Airplane_ID
+        """
+        return self._fetchall(sql, (airline,))
+
