@@ -1,57 +1,63 @@
 {#   templates/partials/staff_filters.html   #}
-<form class="row g-3" action="{{ url_for('staff_flights') }}" method="get">
-    <!-- Date Range -->
-    <div class="col-md-3">
-        <label class="form-label fw-medium">Start Date</label>
-        <input type="date" name="start" class="form-control" value="{{ start|default('') }}">
-    </div>
+<div class="card mt-4">
+  <div class="card-body">
+    <h5 class="card-title">Flight Filters</h5>
 
-    <div class="col-md-3">
-        <label class="form-label fw-medium">End Date</label>
-        <input type="date" name="end" class="form-control" value="{{ end|default('') }}">
-    </div>
+    <form class="row g-3" action="{{ url_for('staff_flights') }}" method="get">
+        <!-- Date Range -->
+        <div class="col-md-3">
+            <label class="form-label fw-medium">Start Date</label>
+            <input type="date" name="start" class="form-control" value="{{ start|default('') }}">
+        </div>
 
-    <!-- Airports -->
-    <div class="col-md-3">
-        <label class="form-label fw-medium">Departure Airport</label>
-        <select name="departure_airport" class="form-select">
-            <option value="All">All Airports</option>
-            {% for ap in departure_airports %}
-                <option value="{{ ap }}" {% if ap == departure_airport %}selected{% endif %}>
-                    {{ ap }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+        <div class="col-md-3">
+            <label class="form-label fw-medium">End Date</label>
+            <input type="date" name="end" class="form-control" value="{{ end|default('') }}">
+        </div>
 
-    <div class="col-md-3">
-        <label class="form-label fw-medium">Arrival Airport</label>
-        <select name="arrival_airport" class="form-select">
-            <option value="All">All Airports</option>
-            {% for ap in arrival_airports %}
-                <option value="{{ ap }}" {% if ap == arrival_airport %}selected{% endif %}>
-                    {{ ap }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+        <!-- Airports -->
+        <div class="col-md-3">
+            <label class="form-label fw-medium">Departure Airport</label>
+            <select name="departure_airport" class="form-select">
+                <option value="All">All Airports</option>
+                {% for ap in departure_airports %}
+                    <option value="{{ ap }}" {% if ap == departure_airport %}selected{% endif %}>
+                        {{ ap }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <!-- Results Limit -->
-    <div class="col-md-3">
-        <label class="form-label fw-medium">Results Limit</label>
-        <select class="form-select" name="limit">
-            <option value="5" {% if request.args.get('limit') == '5' %}selected{% endif %}>5 flights</option>
-            <option value="10" {% if request.args.get('limit') == '10' %}selected{% endif %}>10 flights</option>
-            <option value="15" {% if not request.args.get('limit') or request.args.get('limit') == '15' %}selected{% endif %}>15 flights</option>
-            <option value="25" {% if request.args.get('limit') == '25' %}selected{% endif %}>25 flights</option>
-            <option value="50" {% if request.args.get('limit') == '50' %}selected{% endif %}>50 flights</option>
-        </select>
-    </div>
+        <div class="col-md-3">
+            <label class="form-label fw-medium">Arrival Airport</label>
+            <select name="arrival_airport" class="form-select">
+                <option value="All">All Airports</option>
+                {% for ap in arrival_airports %}
+                    <option value="{{ ap }}" {% if ap == arrival_airport %}selected{% endif %}>
+                        {{ ap }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <!-- Search Button -->
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-search me-1"></i> Search Flights
-        </button>
-    </div>
-</form>
+        <!-- Results Limit -->
+        <div class="col-md-3">
+            <label class="form-label fw-medium">Results Limit</label>
+            <select class="form-select" name="limit">
+                <option value="5" {% if request.args.get('limit') == '5' %}selected{% endif %}>5 flights</option>
+                <option value="10" {% if request.args.get('limit') == '10' %}selected{% endif %}>10 flights</option>
+                <option value="15" {% if not request.args.get('limit') or request.args.get('limit') == '15' %}selected{% endif %}>15 flights</option>
+                <option value="25" {% if request.args.get('limit') == '25' %}selected{% endif %}>25 flights</option>
+                <option value="50" {% if request.args.get('limit') == '50' %}selected{% endif %}>50 flights</option>
+            </select>
+        </div>
+
+        <!-- Search Button -->
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+                Search Flights
+            </button>
+        </div>
+    </form>
+  </div>
+</div>

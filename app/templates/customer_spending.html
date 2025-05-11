@@ -1,109 +1,381 @@
-{# templates/customer_spending.html #}
 {% extends "base.html" %}
-{% block title %}Spending{% endblock %}
+{% block title %}Spending Dashboard – Flight IQ{% endblock %}
 
 {% block extra_css %}
 {{ super() }}
-<link rel="stylesheet"
-      href="{{ url_for('static', filename='css/customer_spending.css') }}">
+<style>
+  /* Modern card styling */
+  .dashboard-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Form control styling */
+  .date-input {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .date-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+  
+  /* Button styling */
+  .dashboard-btn {
+    border-radius: 6px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .dashboard-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Chart containers */
+  .charts-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+  
+  .chart-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    flex: 1;
+    min-width: 300px;
+    border: none;
+  }
+  
+  /* Stat value styling */
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #0d6efd;
+  }
+  
+  .stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0;
+  }
+  
+  /* Overview metrics styling */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .metric-label {
+    font-weight: 500;
+    color: #495057;
+  }
+  
+  .metric-value {
+    font-weight: 600;
+    color: #212529;
+  }
+  
+  .metric-value.primary {
+    color: #0d6efd;
+  }
+  
+  .metric-value.success {
+    color: #198754;
+  }
+  
+  .metric-value.danger {
+    color: #dc3545;
+  }
+  
+  /* Enhanced table styling */
+  .spending-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    margin-top: 1.5rem;
+  }
+  
+  .spending-table th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .spending-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+  }
+  
+  .spending-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .spending-table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+  }
+  
+  /* Badges and pills */
+  .airline-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    background-color: #e9ecef;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  
+  .price-pill {
+    font-weight: 500;
+    color: #0d6efd;
+  }
+  
+  .commission-pill {
+    font-weight: 500;
+    color: #dc3545;
+  }
+  
+  .agent-pill {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+  }
+  
+  /* Section headers */
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    color: #0d6efd;
+  }
+  
+  .section-header i {
+    margin-right: 0.5rem;
+    font-size: 1.5rem;
+  }
+  
+  .page-subtitle {
+    color: #6c757d;
+    margin-top: -0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Empty state styling */
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 992px) {
+    .chart-card {
+      min-width: 100%;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<h3 class="mb-3">Spending summary</h3>
+<!-- Page Header with Icon -->
+<div class="section-header">
+  <i class="bi bi-graph-up"></i>
+  <h2 class="mb-0">Spending Dashboard</h2>
+</div>
+<p class="page-subtitle">Track and analyze your flight expenses over time</p>
 
-<!-- ── ROW: search form (8/12) + overview (4/12) ─────────────────── -->
-<div class="row g-3 mb-4">
-  <!-- search form --------------------------------------------------- -->
+<!-- ROW: Search Form and Overview Cards -->
+<div class="row g-4 mb-4">
+  <!-- Search Form Card -->
   <div class="col-lg-8">
-    <form class="card p-3 h-100" method="POST" novalidate>
-      <div class="row g-3 align-items-end">
-        <div class="col-sm-5">
-          <label for="start" class="form-label mb-0">Start&nbsp;date</label>
-          <input id="start" name="start" type="date" required
-                 class="form-control"
-                 value="{{ start.strftime('%Y-%m-%d') }}">
+    <div class="dashboard-card p-4 h-100">
+      <h5 class="mb-3">
+        <i class="bi bi-calendar-range me-2"></i>Select Date Range
+      </h5>
+      <form method="POST" novalidate>
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-5">
+            <label for="start" class="form-label mb-1 fw-semibold">Start Date</label>
+            <input id="start" name="start" type="date" required
+                   class="form-control date-input"
+                   value="{{ start.strftime('%Y-%m-%d') }}">
+          </div>
+          <div class="col-sm-5">
+            <label for="end" class="form-label mb-1 fw-semibold">End Date</label>
+            <input id="end" name="end" type="date" required
+                   class="form-control date-input"
+                   value="{{ end.strftime('%Y-%m-%d') }}">
+          </div>
+          <div class="col-sm-2 d-grid">
+            <button class="btn btn-primary dashboard-btn">
+              <i class="bi bi-search me-1"></i>Apply
+            </button>
+          </div>
         </div>
-        <div class="col-sm-5">
-          <label for="end" class="form-label mb-0">End&nbsp;date</label>
-          <input id="end" name="end" type="date" required
-                 class="form-control"
-                 value="{{ end.strftime('%Y-%m-%d') }}">
-        </div>
-        <div class="col-sm-2 d-grid">
-          <button class="btn btn-primary">Show</button>
-        </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 
-  <!-- overview card -------------------------------------------------- -->
+  <!-- Overview Card -->
   <div class="col-lg-4">
-    <div class="card p-3 h-100">
-      <div class="fw-bold mb-2">Overview</div>
-
-      <div>Total spend:
-        <span class="fw-bold">${{ '%.2f' % total_spend }}</span>
-      </div>
-      <div>Commission paid:
-        <span class="fw-bold">${{ '%.2f' % commission_total }}</span>
-      </div>
-      <div class="text-muted small">
-        (direct ${{ '%.2f' % direct_spend }},
-         via agent ${{ '%.2f' % agent_spend }})
-      </div>
-
-      <hr class="my-2">
-
-      <div>Total tickets:
-        <span class="fw-bold">{{ total_tix }}</span>
-      </div>
-      <div class="text-muted small">
-        (direct {{ direct_tix }}, via agent {{ agent_tix }})
+    <div class="dashboard-card p-4 h-100">
+      <h5 class="mb-3">
+        <i class="bi bi-info-circle me-2"></i>Spending Summary
+      </h5>
+      
+      <div class="metrics-grid">
+        <!-- Total Spend -->
+        <div class="metric-item">
+          <span class="metric-label">Total Spend:</span>
+          <span class="metric-value primary">${{ '%.2f' % total_spend }}</span>
+        </div>
+        
+        <!-- Commission Paid -->
+        <div class="metric-item">
+          <span class="metric-label">Commission Paid:</span>
+          <span class="metric-value danger">${{ '%.2f' % commission_total }}</span>
+        </div>
+        
+        <!-- Direct vs Agent spending -->
+        <div class="metric-item small">
+          <span class="metric-label text-muted">Direct Purchase:</span>
+          <span class="metric-value">${{ '%.2f' % direct_spend }}</span>
+        </div>
+        
+        <div class="metric-item small">
+          <span class="metric-label text-muted">Via Agent:</span>
+          <span class="metric-value">${{ '%.2f' % agent_spend }}</span>
+        </div>
+        
+        <hr class="my-2">
+        
+        <!-- Total Tickets -->
+        <div class="metric-item">
+          <span class="metric-label">Total Tickets:</span>
+          <span class="metric-value success">{{ total_tix }}</span>
+        </div>
+        
+        <!-- Direct vs Agent tickets -->
+        <div class="metric-item small">
+          <span class="metric-label text-muted">Direct Purchase:</span>
+          <span class="metric-value">{{ direct_tix }}</span>
+        </div>
+        
+        <div class="metric-item small">
+          <span class="metric-label text-muted">Via Agent:</span>
+          <span class="metric-value">{{ agent_tix }}</span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ── ROW: charts fixed side-by-side ────────────────────────────── -->
-<div class="chart-row">
-  <div class="chart-box"><canvas id="pieChart"></canvas></div>
-  <div class="chart-box"><canvas id="barChart"></canvas></div>
+<!-- Charts Section -->
+<h5 class="section-header">
+  <i class="bi bi-bar-chart"></i>
+  <span>Spending Analytics</span>
+</h5>
+
+<div class="charts-container">
+  <div class="chart-card">
+    <canvas id="pieChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <canvas id="barChart"></canvas>
+  </div>
 </div>
 
-<!-- ── table of individual tickets ───────────────────────────────── -->
+<!-- Transactions Section -->
+<h5 class="section-header mt-4">
+  <i class="bi bi-receipt"></i>
+  <span>Flight Transactions</span>
+</h5>
+
 {% if rows %}
-<table class="table table-sm">
-  <thead>
-    <tr>
-      <th>Airline</th>
-      <th>Flight&nbsp;#</th>
-      <th>Departure&nbsp;Date</th>
-      <th>Price&nbsp;($)</th>
-      <th>Commission&nbsp;($)</th>
-      <th>Paid&nbsp;($)</th>
-      <th>Agent&nbsp;ID</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for r in rows %}
-    <tr>
-      <td>{{ r.Airline }}</td>
-      <td>{{ r.Flight_ID }}</td>
-      <td>{{ r.Departure_Date }}</td>
-      <td>{{ '%.2f' % r.Price }}</td>
-      <td>{{ '%.2f' % r.Commission }}</td>
-      <td>{{ '%.2f' % r.Paid }}</td>
-      <td>{{ r.Agent_ID or '—' }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  <div class="table-responsive">
+    <table class="spending-table">
+      <thead>
+        <tr>
+          <th>Airline</th>
+          <th>Flight #</th>
+          <th>Departure Date</th>
+          <th>Base Price</th>
+          <th>Commission</th>
+          <th>Total Paid</th>
+          <th>Booking Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><span class="airline-badge">{{ r.Airline }}</span></td>
+          <td><strong>{{ r.Flight_ID }}</strong></td>
+          <td>{{ r.Departure_Date }}</td>
+          <td class="price-pill">${{ '%.2f' % r.Price }}</td>
+          <td class="commission-pill">${{ '%.2f' % r.Commission }}</td>
+          <td><strong>${{ '%.2f' % r.Paid }}</strong></td>
+          <td>
+            {% if r.Agent_ID %}
+              <span class="agent-pill">{{ r.Agent_ID }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state">
+    <i class="bi bi-receipt-cutoff text-muted" style="font-size: 3rem;"></i>
+    <h5 class="mt-3">No transactions in selected period</h5>
+    <p class="text-muted">Try selecting a different date range to see your flight transactions.</p>
+  </div>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
+<!-- Include Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+<!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+<!-- Chart Data -->
 <span id="data" hidden
       data-pie-labels='{{ pie_labels|tojson|safe }}'
       data-pie-values='{{ pie_values|tojson|safe }}'
@@ -118,24 +390,123 @@
   const barL = JSON.parse(cfg.dataset.barLabels);
   const barV = JSON.parse(cfg.dataset.barValues).map(Number);
 
-  /* pie – spending by airline (paid amounts) */
+  // Color palette
+  const colors = [
+    'rgba(13, 110, 253, 0.75)',   // Primary blue
+    'rgba(25, 135, 84, 0.75)',    // Success green
+    'rgba(220, 53, 69, 0.75)',    // Danger red
+    'rgba(255, 193, 7, 0.75)',    // Warning yellow
+    'rgba(13, 202, 240, 0.75)',   // Info cyan
+    'rgba(111, 66, 193, 0.75)',   // Purple
+    'rgba(253, 126, 20, 0.75)',   // Orange
+    'rgba(108, 117, 125, 0.75)'   // Secondary gray
+  ];
+
+  /* Pie chart – spending by airline (paid amounts) */
   new Chart(document.getElementById('pieChart'), {
-    type:'pie',
-    data:{labels:pieL,datasets:[{data:pieV}]},
-    options:{plugins:{
-      title:{display:true,text:'Spending by Airline',font:{size:18}},
-      legend:{position:'bottom'}
-    }}
+    type: 'pie',
+    data: {
+      labels: pieL,
+      datasets: [{
+        data: pieV,
+        backgroundColor: colors,
+        borderWidth: 1,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Spending by Airline',
+          font: { size: 18, weight: 'bold' },
+          padding: { bottom: 15 }
+        },
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 15,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((context.raw / total) * 100);
+              return `${context.label}: $${context.raw.toFixed(2)} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    }
   });
 
-  /* bar – spending per month (paid amounts) */
+  /* Bar chart – spending per month (paid amounts) */
   new Chart(document.getElementById('barChart'), {
-    type:'bar',
-    data:{labels:barL,datasets:[{label:'Spend ($)',data:barV}]},
-    options:{
-      aspectRatio:1,
-      plugins:{title:{display:true,text:'Spending per Month',font:{size:18}}},
-      scales:{y:{beginAtZero:true}}
+    type: 'bar',
+    data: {
+      labels: barL,
+      datasets: [{
+        label: 'Monthly Spending',
+        data: barV,
+        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+        borderColor: 'rgba(13, 110, 253, 1)',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Spending per Month',
+          font: { size: 18, weight: 'bold' },
+          padding: { bottom: 15 }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `$${context.raw.toFixed(2)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            display: true,
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            callback: function(value) {
+              return '$' + value;
+            }
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      }
+    }
+  });
+
+  // Form validation
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const startDate = new Date(document.getElementById('start').value);
+    const endDate = new Date(document.getElementById('end').value);
+    
+    if (startDate > endDate) {
+      e.preventDefault();
+      alert('Start date must be before end date');
     }
   });
 })();

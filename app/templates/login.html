@@ -60,6 +60,62 @@
     border-color: #1A3A6E;
     box-shadow: 0 0 0 0.2rem rgba(26, 58, 110, 0.25);
   }
+  
+  /* Flash messages styling */
+  .flash-message {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .flash-message .icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+  }
+  
+  .flash-message .message {
+    flex: 1;
+  }
+  
+  .flash-message.danger {
+    border-left-color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.08);
+  }
+  
+  .flash-message.danger .icon {
+    color: #dc3545;
+  }
+  
+  .flash-message.success {
+    border-left-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.08);
+  }
+  
+  .flash-message.success .icon {
+    color: #28a745;
+  }
+  
+  .flash-message.info {
+    border-left-color: #17a2b8;
+    background-color: rgba(23, 162, 184, 0.08);
+  }
+  
+  .flash-message.info .icon {
+    color: #17a2b8;
+  }
+  
+  .flash-message.warning {
+    border-left-color: #ffc107;
+    background-color: rgba(255, 193, 7, 0.08);
+  }
+  
+  .flash-message.warning .icon {
+    color: #ffc107;
+  }
 </style>
 {% endblock %}
 
@@ -72,6 +128,40 @@
 {# ── Login box ───────────────────────────────────────────────────── #}
 <div class="login-box mx-auto">
   <h2 class="mb-3 text-center">Login</h2>
+  
+  {# ── Flash Messages ───────────────────────────────────────────────── #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">
+          <div class="icon">
+            {% if category == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% elif category == 'danger' %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% elif category == 'info' %}
+              <i class="fas fa-info-circle"></i>
+            {% elif category == 'warning' %}
+              <i class="fas fa-exclamation-triangle"></i>
+            {% else %}
+              <i class="fas fa-info-circle"></i>
+            {% endif %}
+          </div>
+          <div class="message">{{ message }}</div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  
+  {# ── Error message from the route (if not using flash) ───────────────── #}
+  {% if error %}
+    <div class="flash-message danger">
+      <div class="icon">
+        <i class="fas fa-exclamation-circle"></i>
+      </div>
+      <div class="message">{{ error }}</div>
+    </div>
+  {% endif %}
 
   <form action="{{ url_for('login') }}" method="POST" novalidate>
     <!-- Role picker with icons -->
@@ -189,5 +279,23 @@ function showOnly(...groups) {
 window.onload = function() {
   selectRole('customer');
 };
+
+// Auto-dismiss flash messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+  const flashMessages = document.querySelectorAll('.flash-message');
+  
+  if (flashMessages.length > 0) {
+    setTimeout(function() {
+      flashMessages.forEach(message => {
+        message.style.transition = 'opacity 0.5s ease';
+        message.style.opacity = '0';
+        
+        setTimeout(function() {
+          message.style.display = 'none';
+        }, 500);
+      });
+    }, 5000);
+  }
+});
 </script>
 {% endblock %}

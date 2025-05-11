@@ -13,7 +13,7 @@ class PublicDatabaseService(AbstractDatabaseService):
         source: Optional[str] = None,
         destination: Optional[str] = None,
         on_or_after: Optional[date] = None,
-        limit: int = 5
+        limit: int = 15
     ) -> List[Dict]:
         sql = """
             SELECT  F.*,
@@ -23,7 +23,6 @@ class PublicDatabaseService(AbstractDatabaseService):
             JOIN    Airport  dep ON dep.Name = F.Departure_Airport
             JOIN    Airport  arr ON arr.Name = F.Arrival_Airport
             WHERE   F.Status_ = 'Upcoming'
-                    AND F.Departure_Date >= CURDATE()
                   {src_filter} {dst_filter} {date_filter}
             ORDER BY F.Departure_Date, F.Departure_Time
             LIMIT %s
@@ -84,7 +83,6 @@ class PublicDatabaseService(AbstractDatabaseService):
             JOIN    Airport  dep ON dep.Name = F.Departure_Airport
             JOIN    Airport  arr ON arr.Name = F.Arrival_Airport
             WHERE   F.Status_ = 'Upcoming'
-                    AND F.Departure_Date >= CURDATE()
             ORDER BY F.Departure_Date, F.Departure_Time
             LIMIT %s
             """,
@@ -185,7 +183,6 @@ class PublicDatabaseService(AbstractDatabaseService):
         self._exec(sql, k)
 
     def create_booking_agent(self, **k):
-        print(k)
         sql = """
             INSERT INTO Booking_Agent
                    (Email, Password, Booking_Agent_ID)
@@ -196,6 +193,7 @@ class PublicDatabaseService(AbstractDatabaseService):
         self._exec(sql, k)
 
     def create_staff(self, **k):
+        print("Staff creation parameters:", k)  
         sql = """
             INSERT INTO Airline_Staff
                    (Username, Password,
@@ -208,13 +206,3 @@ class PublicDatabaseService(AbstractDatabaseService):
                     NULL)
         """
         self._exec(sql, k)
-
-    # ------------------------------------------------------------------
-    # Misc.
-    # ------------------------------------------------------------------
-    def list_airports(self) -> List[str]:
-        rows = self._fetchall(
-            "SELECT DISTINCT Departure_Airport AS ap FROM Flight "
-            "UNION SELECT DISTINCT Arrival_Airport FROM Flight"
-        )
-        return sorted(r["ap"] for r in rows)

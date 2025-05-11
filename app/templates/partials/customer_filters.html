@@ -1,48 +1,54 @@
-{# ── templates/partials/customer_filters.html ────────────────────────── #}
-<form class="row g-3" action="{{ url_for('customer_flight_search') }}" method="get">
-    <div class="col-md-3">
-        <label class="form-label fw-medium">Departure Airport</label>
+{# Complete flight filters section with fixed header #}
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h4 class="mb-4" style="color: #1A3A6E; font-weight: 600; font-size: 1.5rem;">Flight Filters</h4>
+    
+    <form class="row g-3" action="{{ url_for('customer_flight_search') }}" method="get">
+      <div class="col-md-3">
+        <label class="form-label fw-semibold" style="color: #1A3A6E;">Departure Airport</label>
         <select class="form-select" name="source">
-            <option value="">All Airports</option>
-            {% for a in departure_airports %}
-                <option value="{{ a }}" {{ 'selected' if request.args.get('source') == a else '' }}>
-                    {{ a }}
-                </option>
-            {% endfor %}
+          <option value="">All Airports</option>
+          {% for a in departure_airports %}
+            <option value="{{ a }}" {{ 'selected' if request.args.get('source') == a else '' }}>
+              {{ a }}
+            </option>
+          {% endfor %}
         </select>
-    </div>
+      </div>
 
-    <div class="col-md-3">
-        <label class="form-label fw-medium">Arrival Airport</label>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold" style="color: #1A3A6E;">Arrival Airport</label>
         <select class="form-select" name="destination">
-            <option value="">All Airports</option>
-            {% for a in arrival_airports %}
-                <option value="{{ a }}" {{ 'selected' if request.args.get('destination') == a else '' }}>
-                    {{ a }}
-                </option>
-            {% endfor %}
+          <option value="">All Airports</option>
+          {% for a in arrival_airports %}
+            <option value="{{ a }}" {{ 'selected' if request.args.get('destination') == a else '' }}>
+              {{ a }}
+            </option>
+          {% endfor %}
         </select>
-    </div>
+      </div>
 
-    <div class="col-md-3">
-        <label class="form-label fw-medium">Departure Date</label>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold" style="color: #1A3A6E;">Departure Date</label>
         <input type="date" class="form-control" name="start_date" value="{{ request.args.get('start_date', '') }}">
-    </div>
+      </div>
 
-    <div class="col-md-3">
-        <label class="form-label fw-medium">Results Limit</label>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold" style="color: #1A3A6E;">Results Limit</label>
         <select class="form-select" name="limit">
-            <option value="5" {% if request.args.get('limit') == '5' %}selected{% endif %}>5 flights</option>
-            <option value="10" {% if request.args.get('limit') == '10' %}selected{% endif %}>10 flights</option>
-            <option value="15" {% if not request.args.get('limit') or request.args.get('limit') == '15' %}selected{% endif %}>15 flights</option>
-            <option value="25" {% if request.args.get('limit') == '25' %}selected{% endif %}>25 flights</option>
-            <option value="50" {% if request.args.get('limit') == '50' %}selected{% endif %}>50 flights</option>
+          <option value="5" {% if request.args.get('limit') == '5' %}selected{% endif %}>5 flights</option>
+          <option value="10" {% if request.args.get('limit') == '10' %}selected{% endif %}>10 flights</option>
+          <option value="15" {% if not request.args.get('limit') or request.args.get('limit') == '15' %}selected{% endif %}>15 flights</option>
+          <option value="25" {% if request.args.get('limit') == '25' %}selected{% endif %}>25 flights</option>
+          <option value="50" {% if request.args.get('limit') == '50' %}selected{% endif %}>50 flights</option>
         </select>
-    </div>
+      </div>
 
-    <div class="col-12">
+      <div class="col-12">
         <button type="submit" class="btn btn-primary">
-            <i class="fas fa-search me-1"></i> Search Flights
+          <i class="fas fa-search me-1"></i> Search Flights
         </button>
-    </div>
-</form>
+      </div>
+    </form>
+  </div>
+</div>

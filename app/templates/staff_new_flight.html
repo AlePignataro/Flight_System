@@ -205,6 +205,48 @@
     color: #055160;
   }
 
+  /* Custom select styles */
+  .select-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #6c757d;
+  }
+
+  /* Add a custom class for the airport selector area */
+  .airport-selector {
+    position: relative;
+  }
+  
+  /* Add a "new airport" button style */
+  .btn-add-airport {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    color: #0d6efd;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .btn-add-airport:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+  }
+  
+  /* Option group styling */
+  optgroup {
+    font-weight: 600;
+    color: #495057;
+  }
+
+  /* Airport code emphasis */
+  .airport-code {
+    font-weight: 600;
+  }
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .flight-form-body {
@@ -330,14 +372,44 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label for="departure_airport" class="form-label">Departure Airport</label>
-            <input type="text" class="form-control" id="departure_airport" name="Departure_Airport" placeholder="e.g. JFK" required>
-            <div class="invalid-feedback">Please provide a departure airport.</div>
+            <div class="airport-selector">
+              <select class="form-select" id="departure_airport" name="Departure_Airport" required>
+                <option value="" selected disabled>Select departure airport</option>
+                {% for airport in airports %}
+                <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
+                {% endfor %}
+              </select>
+              <div class="select-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg>
+              </div>
+              <div class="invalid-feedback">Please select a departure airport.</div>
+              <a href="{{ url_for('staff_add_airport') }}" class="btn-add-airport">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                Add New Airport
+              </a>
+            </div>
           </div>
           
           <div class="col-md-6">
             <label for="arrival_airport" class="form-label">Arrival Airport</label>
-            <input type="text" class="form-control" id="arrival_airport" name="Arrival_Airport" placeholder="e.g. LAX" required>
-            <div class="invalid-feedback">Please provide an arrival airport.</div>
+            <div class="airport-selector">
+              <select class="form-select" id="arrival_airport" name="Arrival_Airport" required>
+                <option value="" selected disabled>Select arrival airport</option>
+                {% for airport in airports %}
+                <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
+                {% endfor %}
+              </select>
+              <div class="select-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                </svg>
+              </div>
+              <div class="invalid-feedback">Please select an arrival airport.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -485,8 +557,8 @@
     
     // Validate that departure and arrival airports are different
     function validateAirports() {
-      const depAirport = departureAirport.value.trim().toUpperCase();
-      const arrAirport = arrivalAirport.value.trim().toUpperCase();
+      const depAirport = departureAirport.value;
+      const arrAirport = arrivalAirport.value;
       
       if (depAirport && arrAirport && depAirport === arrAirport) {
         arrivalAirport.setCustomValidity('Departure and arrival airports must be different');
@@ -502,8 +574,7 @@
     
     // Add event listeners for airport validation
     [departureAirport, arrivalAirport].forEach(el => {
-      el.addEventListener('input', validateAirports);
-      el.addEventListener('blur', validateAirports);
+      el.addEventListener('change', validateAirports);
     });
     
     // Format airplane ID to uppercase

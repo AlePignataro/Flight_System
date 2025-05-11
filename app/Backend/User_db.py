@@ -4,6 +4,12 @@ from datetime import date, datetime, timedelta
 from .Database_Manager_abstract import AbstractDatabaseService
 import random
 
+from abc import ABC, abstractmethod
+from typing import List, Dict, Tuple, Optional, Sequence, Any
+from datetime import date, datetime, timedelta
+from .Database_Manager_abstract import AbstractDatabaseService
+import random
+
 class AbstractUserDB(AbstractDatabaseService, ABC):
     """
     Anything shared by *all* logged-in users goes here.
@@ -35,14 +41,13 @@ class AbstractUserDB(AbstractDatabaseService, ABC):
             f"OR ({p}Departure_Date = CURDATE() AND {p}Departure_Time > CURTIME()))"
         )
 
-
     def search_upcoming_flights(
         self,
         source: Optional[str] = None,
         destination: Optional[str] = None,
         on_date: Optional[date] = None,
         *,
-        allowed_airlines: Optional[Sequence[str]] = None,   # <-- NEW
+        allowed_airlines: Optional[Sequence[str]] = None,
         customer_email: Optional[str] = None,
         booking_agent_id: Optional[str] = None,
         airline_staff_id: Optional[str] = None,
@@ -140,8 +145,6 @@ class AbstractUserDB(AbstractDatabaseService, ABC):
             ),
         )
         return ticket_id
-
-
     
     def check_existing_ticket(self, flight_id: int, customer_email: str) -> str:
         """
@@ -156,6 +159,7 @@ class AbstractUserDB(AbstractDatabaseService, ABC):
 
     @abstractmethod
     def get_upcoming_flights(self, *owner_key) -> List[Dict]: ...
+    
     @abstractmethod
     def get_past_flights(self, *owner_key,
                          start: Optional[date] = None,
@@ -175,7 +179,6 @@ class CustomerDB(AbstractUserDB):
             (email,)
         )
 
-
     # ––– flights –––
     def get_upcoming_flights(self, email: str) -> List[Dict]:
         sql = f"""
@@ -188,7 +191,6 @@ class CustomerDB(AbstractUserDB):
         """
         return self._fetchall(sql, (email,))
 
-
     def get_past_flights(
         self,
         email: str,
@@ -200,7 +202,7 @@ class CustomerDB(AbstractUserDB):
             FROM   Ticket T
             JOIN   Flight F
                    ON T.Airline   = F.Airline
-                  AND T.Flight_ID = F.Flight_ID
+                  AND T.Flight_ID = T.Flight_ID
             WHERE  T.Customer_Email = %s
               AND  F.Departure_Date < CURRENT_DATE
               {start_filter}
@@ -234,7 +236,7 @@ class CustomerDB(AbstractUserDB):
 
         # future-flight guard
         future_ok = self._fetchone(
-            f"SELECT 1 FROM Flight WHERE Airline=%s AND Flight_ID=%s AND {self._upcoming_clause("Flight")}",
+            f"SELECT 1 FROM Flight WHERE Airline=%s AND Flight_ID=%s AND {self._upcoming_clause('Flight')}",
             (airline, flight_id)
         )
         if not future_ok:
@@ -251,7 +253,6 @@ class CustomerDB(AbstractUserDB):
             customer_email=customer_email,
             booking_agent_id=None,
         )
-
     
     def airports_used(self, email: str) -> Tuple[List[str], List[str]]:
         """Return two lists: departure airports and arrival airports the customer has flown through."""
@@ -260,92 +261,11 @@ class CustomerDB(AbstractUserDB):
         dep = [r["ap"] for r in self._fetchall(sql_dep, (email,))]
         arr = [r["ap"] for r in self._fetchall(sql_arr, (email,))]
         return sorted(dep), sorted(arr)
-
-
-    # ––– spending analytics –––
-    def yearly_spending(self, email: str) -> Dict:
-        """
-        Total spent in last 12 months + month-wise breakdown for last 6 months.
-        """
-        sql_tot = """
-            SELECT SUM(F.Price) AS total
-            FROM   Ticket T
-            JOIN   Flight F
-                   ON F.Airline   = T.Airline
-                  AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Customer_Email = %s
-              AND  F.Departure_Date > DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-        """
-        total = self._fetchone(sql_tot, (email,))["total"] or 0
-
-        sql_bar = """
-            SELECT DATE_FORMAT(F.Departure_Date, '%%Y-%%m') AS yr_mon,
-                   SUM(F.Price)                             AS spent
-            FROM   Ticket T
-            JOIN   Flight F
-                   ON F.Airline   = T.Airline
-                  AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Customer_Email = %s
-              AND  F.Departure_Date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP  BY yr_mon
-            ORDER  BY yr_mon
-        """
-        bars = self._fetchall(sql_bar, (email,))
-        return {"total": total, "bars": bars}
-
-    def spending_between(self, email: str, start: date, end: date) -> Dict:
-        sql = """
-            SELECT SUM(F.Price) AS total
-            FROM   Ticket T
-            JOIN   Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Customer_Email = %s
-              AND  F.Departure_Date BETWEEN %s AND %s
-        """
-        return self._fetchone(sql, (email, start, end))
-    
-    def past_tickets(self, email: str, start: date, end: date):
-        """Tickets purchased between start & end inclusive."""
-        sql = """
-            SELECT F.*, T.Purchase_Date
-            FROM   Ticket T
-            JOIN   Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Customer_Email = %s
-            AND  T.Purchase_Date  BETWEEN %s AND %s
-            ORDER  BY T.Purchase_Date
-        """
-        return self._fetchall(sql, (email, start, end))
-
-
-    def tickets_per_month(self, email: str, start: date, end: date):
-        sql = """
-            SELECT DATE_FORMAT(T.Purchase_Date,'%Y-%m') AS yr_mon,
-                COUNT(*)                           AS tickets
-            FROM   Ticket T
-            WHERE  T.Customer_Email = %s
-            AND  T.Purchase_Date BETWEEN %s AND %s
-            GROUP  BY yr_mon
-            ORDER  BY yr_mon
-        """
-        return self._fetchall(sql, (email, start, end))
-
-
-    def spend_per_month(self, email: str, start: date, end: date):
-        sql = """
-            SELECT DATE_FORMAT(T.Purchase_Date,'%Y-%m') AS yr_mon,
-                SUM(F.Price)                         AS spent
-            FROM   Ticket T
-            JOIN   Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Customer_Email = %s
-            AND  T.Purchase_Date BETWEEN %s AND %s
-            GROUP  BY yr_mon
-            ORDER  BY yr_mon
-        """
-        return self._fetchall(sql, (email, start, end))
     
     def get_departure_airports(self) -> list[str]:
         """
         Return every airport code that appears as a departure airport
-        on flights that haven’t taken off yet (today or later).
+        on flights that haven't taken off yet (today or later).
         """
         sql = """
             SELECT DISTINCT Departure_Airport AS ap
@@ -358,7 +278,7 @@ class CustomerDB(AbstractUserDB):
     def get_arrival_airports(self) -> list[str]:
         """
         Return every airport code that appears as an arrival airport
-        on flights that haven’t taken off yet (today or later).
+        on flights that haven't taken off yet (today or later).
         """
         sql = """
             SELECT DISTINCT Arrival_Airport AS ap
@@ -393,7 +313,6 @@ class CustomerDB(AbstractUserDB):
             ORDER  BY F.Departure_Date, F.Departure_Time
         """
         return self._fetchall(sql, (email, start, end))
-
 
     def spend_breakdown(self, email: str, start: date, end: date) -> dict:
         sql = """
@@ -457,12 +376,26 @@ class BookingAgentDB(AbstractUserDB):
 
     # ––– flights –––
     def get_upcoming_flights(self, agent_id: str) -> List[Dict]:
+        """
+        Get all upcoming flights that were booked by this agent.
+        These are tickets where Booking_Agent_ID = agent_id and the flight is in the future.
+        
+        Parameters
+        ----------
+        agent_id : str
+            The booking agent ID to filter tickets by.
+            
+        Returns
+        -------
+        List[Dict]
+            List of flight dictionaries with Customer_Email added from the Ticket table.
+        """
         sql = f"""
             SELECT F.*, T.Customer_Email
             FROM   Ticket T
             JOIN   Flight F ON T.Airline = F.Airline AND T.Flight_ID = F.Flight_ID
             WHERE  T.Booking_Agent_ID = %s
-            AND  {self._upcoming_clause()}
+            AND  {self._upcoming_clause("F")}
             ORDER  BY F.Departure_Date, F.Departure_Time
         """
         return self._fetchall(sql, (agent_id,))
@@ -473,9 +406,9 @@ class BookingAgentDB(AbstractUserDB):
         agent_id: str,
         customer_email: Optional[str] = None,
         departure_airport: Optional[str] = None,
-        arrival_airport:   Optional[str] = None,
+        arrival_airport: Optional[str] = None,
         start: Optional[date] = None,
-        end:   Optional[date] = None,
+        end: Optional[date] = None,
     ) -> List[Dict]:
         """
         Past flights sold by this booking-agent, optionally filtered by
@@ -483,7 +416,7 @@ class BookingAgentDB(AbstractUserDB):
         """
         conditions = [
             "T.Booking_Agent_ID = %s",
-            "F.Departure_Date   < CURRENT_DATE"
+            "F.Departure_Date < CURRENT_DATE"
         ]
         params: List = [agent_id]
 
@@ -538,7 +471,7 @@ class BookingAgentDB(AbstractUserDB):
 
         # still in the future?
         future_ok = self._fetchone(
-            f"SELECT 1 FROM Flight WHERE Airline=%s AND Flight_ID=%s AND {self._upcoming_clause("Flight")}",
+            f"SELECT 1 FROM Flight WHERE Airline=%s AND Flight_ID=%s AND {self._upcoming_clause('Flight')}",
             (airline, flight_id)
         )
         if not future_ok:
@@ -555,23 +488,6 @@ class BookingAgentDB(AbstractUserDB):
             customer_email=customer_email,
             booking_agent_id=agent_id,
         )
-
-
-    # ––– commission analytics –––
-    def commission_last_30_days(self, agent_id: str) -> Dict:
-        sql = """
-            SELECT
-                SUM(F.Price) * 0.10 AS total_comm,
-                AVG(F.Price) * 0.10 AS avg_comm,
-                COUNT(*) AS tickets
-            FROM   Ticket T
-            JOIN   Flight F
-                   ON F.Airline   = T.Airline
-                  AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Booking_Agent_ID = %s
-              AND  T.Purchase_Date   >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        """
-        return self._fetchone(sql, (agent_id,))
 
     def get_commission_tickets(
         self, agent_id: str, start: date, end: date
@@ -608,7 +524,6 @@ class BookingAgentDB(AbstractUserDB):
             ORDER  BY day
         """
         return self._fetchall(sql, (agent_id, start, end))
-
 
     # ––– top customers (two different metrics) –––
     def top_customers_by_tickets(self, agent_id: str) -> List[Dict]:
@@ -670,22 +585,6 @@ class BookingAgentDB(AbstractUserDB):
         """
         return [r["ap"] for r in self._fetchall(sql, tuple(airlines))]
     
-    def list_agent_flights(self, agent_id: str) -> List[Dict]:
-        """
-        All distinct Flight_ID values the booking agent has tickets for.
-        Used to populate the “Flight #” dropdown.
-        """
-        sql = """
-            SELECT DISTINCT F.Flight_ID
-            FROM   Ticket T
-            JOIN   Flight F
-                   ON F.Airline   = T.Airline
-                  AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Booking_Agent_ID = %s
-            ORDER  BY F.Flight_ID
-        """
-        return self._fetchall(sql, (agent_id,))
-    
     def monthly_commission_totals(self, agent_id: str):
         sql = """
             SELECT DATE_FORMAT(T.Purchase_Date,'%Y-%m') AS month,
@@ -722,8 +621,6 @@ class BookingAgentDB(AbstractUserDB):
         return row["City"] if row else code
 
 
-
-
 # ─────────────────────────── airline_staff.py ─────────────────────────
 class AirlineStaffDB(AbstractUserDB):
     """Everything an airline-staff account can do (Admin / Operator gates enforced in code)."""
@@ -734,13 +631,23 @@ class AirlineStaffDB(AbstractUserDB):
             "SELECT * FROM Airline_Staff WHERE Username = %s",
             (username,)
         )
+    
+    def get_airports_with_cities(self) -> List[Dict[str, str]]:
+        sql = """
+            SELECT Name as code, City as city
+            FROM Airport
+            ORDER BY City, Name
+        """
+        return self._fetchall(sql)
+
 
     def permissions(self, username: str) -> List[str]:
         rows = self._fetchall(
             "SELECT Role as Permission FROM Airline_Staff WHERE Username = %s",
             (username,)
         )
-        return [r["Permission"] for r in rows]
+        role = [r["Permission"] for r in rows][0]
+        return role if role else "None"
     
     def get_departure_airports(self, airline_name):
         # SQL query to get unique departure airports for the airline
@@ -753,7 +660,7 @@ class AirlineStaffDB(AbstractUserDB):
         return [row['Departure_Airport'] for row in result]
     
     def get_arrival_airports(self, airline_name):
-    # SQL query to get unique arrival airports for the airline
+        # SQL query to get unique arrival airports for the airline
         query = """
         SELECT DISTINCT Arrival_Airport
         FROM Flight
@@ -777,7 +684,6 @@ class AirlineStaffDB(AbstractUserDB):
             ORDER  BY Departure_Date, Departure_Time
         """
         return self._fetchall(sql, (airline, next_days))
-
 
     def get_past_flights(self, airline: str,
                          start: Optional[date] = None,
@@ -898,20 +804,6 @@ class AirlineStaffDB(AbstractUserDB):
         # Return the generated flight_id
         return flight_id
 
-
-
-    def update_flight_status(self, airline: str,
-                             flight_id: int, new_status: str) -> None:
-        self._execute_query(
-            """
-            UPDATE Flight
-            SET    Status_ = %s
-            WHERE  Airline   = %s
-              AND  Flight_ID = %s
-            """,
-            (new_status, airline, flight_id)
-        )
-
     def add_airplane(self, airline: str,
                      plane_id: int, seats: int) -> None:
         self._execute_query(
@@ -927,150 +819,6 @@ class AirlineStaffDB(AbstractUserDB):
             "INSERT INTO Airport (Name, City) VALUES (%s, %s)",
             (name, city)
         )
-
-    # ––– analytics –––
-    def tickets_sold_report(self, airline: str,
-                            start: date, end: date) -> List[Dict]:
-        sql = """
-            SELECT DATE_FORMAT(Purchase_Date,'%%Y-%%m') AS yr_mon,
-                   COUNT(*)                             AS tickets
-            FROM   Ticket
-            WHERE  Airline = %s
-              AND  Purchase_Date BETWEEN %s AND %s
-            GROUP  BY yr_mon
-            ORDER  BY yr_mon
-        """
-        return self._fetchall(sql, (airline, start, end))
-
-    def revenue_split(self, airline: str,
-                      period: str = 'month') -> Dict:
-        assert period in ('month', 'year')
-        window = "1 MONTH" if period == 'month' else "1 YEAR"
-        sql = f"""
-            SELECT
-              SUM(CASE WHEN Booking_Agent_ID IS NULL THEN F.Price ELSE 0 END) AS direct,
-              SUM(CASE WHEN Booking_Agent_ID IS NOT NULL THEN F.Price ELSE 0 END) AS indirect
-            FROM   Ticket T
-            JOIN   Flight F
-                   ON F.Airline   = T.Airline
-                  AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Airline       = %s
-              AND  T.Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL {window})
-        """
-        return self._fetchone(sql, (airline,))
-
-    def top_destinations(self, airline: str,
-                         period: str = '3m') -> List[Dict]:
-        win = {"3m": "3 MONTH", "1y": "1 YEAR"}[period]
-        sql = f"""
-            SELECT Arrival_Airport        AS airport,
-                   COUNT(*)               AS flights
-            FROM   Flight
-            WHERE  Airline      = %s
-              AND  Departure_Date >= DATE_SUB(CURDATE(), INTERVAL {win})
-            GROUP  BY airport
-            ORDER  BY flights DESC
-            LIMIT  3
-        """
-        return self._fetchall(sql, (airline,))
-
-    def top_booking_agents(self, airline: str,
-                           metric: str = 'tickets',
-                           period: str = 'month') -> List[Dict]:
-        """
-        metric = 'tickets' | 'commission'
-        period = 'month' | 'year'
-        """
-        window = "1 MONTH" if period == 'month' else "1 YEAR"
-        select = "COUNT(*)" if metric == 'tickets' else "SUM(F.Price)*0.10"
-        col    = "tickets"  if metric == 'tickets' else "commission"
-        sql = f"""
-            SELECT Booking_Agent_ID AS agent,
-                   {select}         AS {col}
-            FROM   Ticket T
-            JOIN   Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Airline = %s
-              AND  T.Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL {window})
-              AND  Booking_Agent_ID IS NOT NULL
-            GROUP  BY agent
-            ORDER  BY {col} DESC
-            LIMIT  5
-        """
-        return self._fetchall(sql, (airline,))
-
-    def frequent_customer_last_year(self, airline: str) -> Optional[Dict]:
-        sql = """
-            SELECT Customer_Email, COUNT(*) AS flights
-            FROM   Ticket
-            WHERE  Airline = %s
-              AND  Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-            GROUP  BY Customer_Email
-            ORDER  BY flights DESC
-            LIMIT 1
-        """
-        return self._fetchone(sql, (airline,))
-
-    def flights_of_customer(self, airline: str,
-                            customer_email: str) -> List[Dict]:
-        sql = """
-            SELECT F.*
-            FROM   Ticket T
-            JOIN   Flight F
-                   ON F.Airline   = T.Airline
-                  AND F.Flight_ID = T.Flight_ID
-            WHERE  T.Airline        = %s
-              AND  T.Customer_Email = %s
-        """
-        return self._fetchall(sql, (airline, customer_email))
-
-    # ––– permission + agent admin –––
-    def grant_permission(self, username: str, perm: str) -> None:
-        self._execute_query(
-            """
-            INSERT IGNORE INTO Staff_Permissions (Username, Permission)
-            VALUES (%s, %s)
-            """,
-            (username, perm)
-        )
-
-    def add_booking_agent_to_airline(self, agent_email: str,
-                                     airline: str) -> None:
-        self._execute_query(
-            """
-            INSERT IGNORE INTO Work_For (Booking_Agent_ID, Airline)
-            VALUES (%s, %s)
-            """,
-            (agent_email, airline)
-        )
-
-    def flight_status_counts(
-        self,
-        airline: str,
-        *,
-        start: date | None = None,
-        end:   date | None = None,
-    ) -> Dict[str, int]:
-        """
-        Return {'on_time_cnt': N, 'delayed_cnt': M}.
-        If no dates are supplied we look at the last 30 days.
-        """
-        if start is None and end is None:
-            start = date.today() - timedelta(days=30)
-
-        sql = """
-            SELECT
-              SUM(CASE WHEN Status_ = 'On-time' THEN 1 ELSE 0 END) AS on_time_cnt,
-              SUM(CASE WHEN Status_ = 'Delayed' THEN 1 ELSE 0 END) AS delayed_cnt
-            FROM Flight
-            WHERE Airline = %s
-              AND Departure_Date >= %s
-              {end_clause}
-        """
-        end_clause = "AND Departure_Date <= %s" if end else ""
-        full_sql   = sql.format(end_clause=end_clause)
-        params     = (airline, start) + ((end,) if end else ())
-
-        return self._fetchone(full_sql, params)
     
     def update_flight_status(self, airline: str, flight_id: str, new_status: str):
         sql = """
@@ -1135,76 +883,6 @@ class AirlineStaffDB(AbstractUserDB):
         sql += " GROUP BY Departure_Date ORDER BY Departure_Date"
         return [dict(r) for r in self._fetchall(sql, params)]
 
-    def flight_status_monthly(
-        self, airline: str, start: date, end: date
-    ) -> list[dict]:
-        """
-        Row → {'yr_mon':'2025-05',
-            'upcoming_cnt':3, 'arrived_cnt':12,
-            'delayed_cnt':1,  'cancelled_cnt':0}
-        """
-        sql = """
-            SELECT  DATE_FORMAT(Departure_Date,'%Y-%m')                  AS yr_mon,
-                    SUM(Status_='Upcoming')                             AS upcoming_cnt,
-                    SUM(Status_='Arrived')                              AS arrived_cnt,
-                    SUM(Status_='Delayed')                              AS delayed_cnt,
-                    SUM(Status_='Cancelled')                            AS cancelled_cnt
-            FROM    Flight
-            WHERE   Airline = %s
-            AND   Departure_Date BETWEEN %s AND %s
-            GROUP   BY yr_mon
-            ORDER   BY yr_mon
-        """
-        #  MariaDB: SUM(bool) returns BIGINT, MySQL: BIGINT/DECIMAL → cast later
-        rows = self._fetchall(sql, (airline, start, end))
-        return [dict(r) for r in rows]
-
-
-
-    # ---------- revenue by destination (pie / bar) -----------------
-    def revenue_by_destination(self, airline: str,
-                               start: date, end: date,
-                               limit: int = 10) -> list[dict]:
-        sql = """
-            SELECT  F.Arrival_Airport AS airport,
-                    SUM(F.Price)      AS revenue
-            FROM    Ticket T
-            JOIN    Flight F ON F.Airline=T.Airline
-                            AND F.Flight_ID=T.Flight_ID
-            WHERE   T.Airline=%s
-              AND   T.Purchase_Date BETWEEN %s AND %s
-            GROUP   BY airport
-            ORDER   BY revenue DESC
-            LIMIT   %s;
-        """
-        return [dict(r) for r in self._fetchall(sql, (airline, start, end, limit))]
-
-
-    # ────────────────────────────────────────────────────────────────
-    #  revenue split by destination (pie / bar)
-    # ────────────────────────────────────────────────────────────────
-    def revenue_by_destination(
-        self, airline: str, start: date, end: date, limit: int = 10
-    ) -> list[dict]:
-        """
-        Returns the *top-N* destinations with their gross revenue (direct + indirect).
-        → [{'airport':'JFK','revenue':12800.0}, …]
-        """
-        sql = """
-            SELECT  F.Arrival_Airport AS airport,
-                    SUM(F.Price)      AS revenue
-            FROM    Ticket  T
-            JOIN    Flight   F ON F.Airline   = T.Airline
-                               AND F.Flight_ID = T.Flight_ID
-            WHERE   T.Airline       = %s
-              AND   T.Purchase_Date BETWEEN %s AND %s
-            GROUP   BY airport
-            ORDER   BY revenue DESC
-            LIMIT  %s
-        """
-        rows = self._fetchall(sql, (airline, start, end, limit))
-        return [dict(r) for r in rows]
-
     def get_flights(
         self,
         airline: str,
@@ -1231,12 +909,11 @@ class AirlineStaffDB(AbstractUserDB):
         rows = self._fetchall(sql, (airline, start, start, end, end))  # use your own DB wrapper
         return [dict(row) for row in rows]          
     
-
     def sales_summary(
         self, airline: str, start: date, end: date
     ) -> Dict[str, Any]:
         """
-        One-row snapshot for the “summary cards” (total revenue / tickets).
+        One-row snapshot for the "summary cards" (total revenue / tickets).
 
         Returns
         -------
@@ -1313,9 +990,6 @@ class AirlineStaffDB(AbstractUserDB):
         """
         return self._fetchall(sql, (airline, start, end))
 
-    # ──────────────────────── 9 · REVENUE COMPARISON ────────────────────
-    #   • revenue per destination (direct / agent split)
-    # --------------------------------------------------------------------
     def revenue_by_destination_split(
         self, airline: str, start: date, end: date, limit: int = 10
     ) -> list[dict]:
@@ -1340,7 +1014,6 @@ class AirlineStaffDB(AbstractUserDB):
             LIMIT   %s
         """
         return self._fetchall(sql, (airline, start, end, limit))
-    
     
     def top_customers_monthly(
         self, airline: str, start: date, end: date, limit: int = 3
@@ -1373,9 +1046,6 @@ class AirlineStaffDB(AbstractUserDB):
         return [dict(r) for r in self._fetchall(sql,
                  (airline, start, end, airline, start, end))]
 
-    # -----------------------------------------------------------------
-    #  scheduled flights (next 2 months) grouped by destination
-    # -----------------------------------------------------------------
     def flights_next_two_months_by_destination(
         self, airline: str
     ) -> list[dict]:
@@ -1395,10 +1065,6 @@ class AirlineStaffDB(AbstractUserDB):
         """
         return [dict(r) for r in self._fetchall(sql, (airline,))]
 
-
-    # ─────────────────────── 10 · TOP DESTINATIONS ──────────────────────
-    #   • re-use revenue_by_destination_split(limit=3) for 3 month / 12 month
-    # --------------------------------------------------------------------
     def top_destinations_split(
         self, airline: str, period: str = "3m"
     ) -> List[Dict[str, Any]]:
@@ -1430,8 +1096,14 @@ class AirlineStaffDB(AbstractUserDB):
         """
         return self._fetchall(sql, (airline,))
 
-    # Note: There's already an add_booking_agent_to_airline method in your codebase,
-    # so we won't redefine it here.
+    def add_booking_agent_to_airline(self, agent_id: str, airline: str) -> None:
+        self._execute_query(
+            """
+            INSERT IGNORE INTO Work_For (Booking_Agent_ID, Airline)
+            VALUES (%s, %s)
+            """,
+            (agent_id, airline)
+        )
 
     def list_all_airline_staff(self, airline: str) -> list[dict]:
         """
@@ -1569,3 +1241,194 @@ class AirlineStaffDB(AbstractUserDB):
             LIMIT 5
         """
         return self._fetchall(sql, (airline,))
+    
+    def flights_of_customer(self, airline: str, customer_email: str) -> List[Dict]:
+        sql = """
+            SELECT F.*
+            FROM   Ticket T
+            JOIN   Flight F
+                   ON F.Airline   = T.Airline
+                  AND F.Flight_ID = T.Flight_ID
+            WHERE  T.Airline        = %s
+              AND  T.Customer_Email = %s
+        """
+        return self._fetchall(sql, (airline, customer_email))
+    
+    def frequent_customer_last_year(self, airline: str) -> Optional[Dict]:
+        sql = """
+            SELECT Customer_Email, COUNT(*) AS flights
+            FROM   Ticket
+            WHERE  Airline = %s
+              AND  Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP  BY Customer_Email
+            ORDER  BY flights DESC
+            LIMIT 1
+        """
+        return self._fetchone(sql, (airline,))
+    
+    def top_customers_by_flights(self, airline: str, limit: int = 5) -> List[Dict]:
+        """Returns the top N customers by number of flights in the last year."""
+        sql = """
+            SELECT 
+                C.Email AS Customer_Email,
+                C.First_Name,
+                C.Last_Name,
+                COUNT(T.Ticket_ID) AS flights,
+                SUM(F.Price) AS total_spent
+            FROM Ticket T
+            JOIN Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
+            JOIN Customer C ON C.Email = T.Customer_Email
+            WHERE T.Airline = %s
+            AND T.Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY Customer_Email, C.First_Name, C.Last_Name
+            ORDER BY flights DESC
+            LIMIT %s
+        """
+        return self._fetchall(sql, (airline, limit))
+    
+    def top_customers_by_flights(self, airline: str, limit: int = 5) -> List[Dict]:
+        """Returns the top N customers by number of flights in the last year."""
+        sql = """
+            SELECT 
+                C.Email AS Customer_Email,
+                C.First_Name,
+                C.Last_Name,
+                COUNT(T.Ticket_ID) AS flights,
+                SUM(F.Price) AS total_spent
+            FROM Ticket T
+            JOIN Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
+            JOIN Customer C ON C.Email = T.Customer_Email
+            WHERE T.Airline = %s
+            AND T.Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY Customer_Email, C.First_Name, C.Last_Name
+            ORDER BY flights DESC
+            LIMIT %s
+        """
+        return self._fetchall(sql, (airline, limit))
+
+    def customer_destinations(self, airline: str) -> List[Dict]:
+        """
+        Returns data about the most popular destinations for customers.
+        Used for visualization in the dashboard.
+        """
+        sql = """
+            SELECT 
+                F.Arrival_Airport AS destination,
+                COUNT(DISTINCT T.Customer_Email) AS unique_customers,
+                COUNT(*) AS total_flights
+            FROM Ticket T
+            JOIN Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
+            WHERE T.Airline = %s
+            AND T.Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY destination
+            ORDER BY unique_customers DESC, total_flights DESC
+            LIMIT 10
+        """
+        return self._fetchall(sql, (airline,))
+
+    def monthly_customer_activity(self, airline: str) -> List[Dict]:
+        """
+        Returns monthly data about customer ticket purchases for trend analysis.
+        """
+        sql = """
+            SELECT 
+                DATE_FORMAT(T.Purchase_Date, '%Y-%m') AS month,
+                COUNT(DISTINCT T.Customer_Email) AS unique_customers,
+                COUNT(*) AS tickets_sold,
+                SUM(F.Price) AS revenue
+            FROM Ticket T
+            JOIN Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
+            WHERE T.Airline = %s
+            AND T.Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY month
+            ORDER BY month
+        """
+        return self._fetchall(sql, (airline,))
+
+    def revenue_by_customer_category(self, airline: str) -> List[Dict]:
+        """
+        Categorizes customers by frequency and returns revenue data for each category.
+        """
+        sql = """
+            WITH customer_categories AS (
+                SELECT 
+                    T.Customer_Email,
+                    COUNT(*) AS flight_count,
+                    CASE 
+                        WHEN COUNT(*) >= 10 THEN 'Frequent'
+                        WHEN COUNT(*) >= 5 THEN 'Regular'
+                        ELSE 'Occasional'
+                    END AS category
+                FROM Ticket T
+                WHERE T.Airline = %s
+                AND T.Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+                GROUP BY T.Customer_Email
+            )
+            SELECT 
+                cc.category,
+                COUNT(DISTINCT cc.Customer_Email) AS customer_count,
+                SUM(F.Price) AS total_revenue,
+                AVG(F.Price) AS avg_revenue_per_ticket,
+                SUM(F.Price)/COUNT(DISTINCT cc.Customer_Email) AS avg_revenue_per_customer
+            FROM customer_categories cc
+            JOIN Ticket T ON T.Customer_Email = cc.Customer_Email
+            JOIN Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
+            WHERE T.Airline = %s
+            AND T.Purchase_Date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+            GROUP BY cc.category
+            ORDER BY total_revenue DESC
+        """
+        return self._fetchall(sql, (airline, airline))
+
+    def get_customer_details(self, email: str) -> Optional[Dict]:
+        """
+        Retrieves detailed information about a specific customer.
+        """
+        sql = """
+            SELECT 
+                Email, First_Name, Last_Name, Phone_Number,
+                State, City, Building_Name, Zip_Code,
+                Passport_Number, Passport_Country, Passport_Expiration_Date,
+                DATE_FORMAT(FROM_DAYS(DATEDIFF(CURRENT_DATE, DoB)), '%Y') + 0 AS age
+            FROM Customer
+            WHERE Email = %s
+        """
+        return self._fetchone(sql, (email,))
+
+    def get_customer_flight_stats(self, airline: str, customer_email: str) -> Dict:
+        """
+        Returns statistics about a customer's flight history with this airline.
+        """
+        sql = """
+            SELECT 
+                COUNT(*) AS total_flights,
+                SUM(F.Price) AS total_spent,
+                AVG(F.Price) AS avg_ticket_price,
+                MIN(T.Purchase_Date) AS first_purchase,
+                MAX(T.Purchase_Date) AS last_purchase,
+                COUNT(DISTINCT F.Arrival_Airport) AS unique_destinations,
+                SUM(CASE WHEN T.Booking_Agent_ID IS NOT NULL THEN 1 ELSE 0 END) AS agent_bookings,
+                SUM(CASE WHEN T.Booking_Agent_ID IS NULL THEN 1 ELSE 0 END) AS direct_bookings,
+                (SELECT COUNT(*) 
+                FROM Ticket T2 
+                JOIN Flight F2 ON F2.Airline = T2.Airline AND F2.Flight_ID = T2.Flight_ID
+                WHERE T2.Customer_Email = T.Customer_Email 
+                AND F2.Status_ = 'Cancelled') AS cancelled_flights
+            FROM Ticket T
+            JOIN Flight F ON F.Airline = T.Airline AND F.Flight_ID = T.Flight_ID
+            WHERE T.Airline = %s
+            AND T.Customer_Email = %s
+            GROUP BY T.Customer_Email
+        """
+        result = self._fetchone(sql, (airline, customer_email))
+        return result if result else {
+            'total_flights': 0,
+            'total_spent': 0,
+            'avg_ticket_price': 0,
+            'first_purchase': None,
+            'last_purchase': None,
+            'unique_destinations': 0,
+            'agent_bookings': 0,
+            'direct_bookings': 0,
+            'cancelled_flights': 0
+        }

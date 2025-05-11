@@ -1,112 +1,793 @@
 {% extends "base.html" %}
 {% block title %}Staff Permissions – Flight IQ{% endblock %}
 
-{% block content %}
-<header class="my-4">
-    <h2>Staff Permissions Management</h2>
-    <p class="text-muted mb-0">Grant or revoke permissions for airline staff members</p>
-</header>
+{% block extra_css %}
+<style>
+  /* Enhanced Staff Permissions UI Styling */
+  .page-header {
+    background: linear-gradient(135deg, #0d47a1, #1976d2);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  
+  .page-header h2 {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    position: relative;
+  }
+  
+  .page-header p {
+    margin-bottom: 0;
+    opacity: 0.9;
+    max-width: 700px;
+    position: relative;
+  }
+  
+  .permission-summary {
+    margin-bottom: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  
+  .summary-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e0e0e0;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  }
+  
+  .summary-card .icon {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .summary-card .count {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  
+  .summary-card .label {
+    font-size: 0.9rem;
+    color: #616161;
+    font-weight: 500;
+  }
+  
+  /* Admin card */
+  .summary-card.admin {
+    border-top: 4px solid #c62828;
+  }
+  
+  .summary-card.admin .icon {
+    color: #c62828;
+  }
+  
+  .summary-card.admin .count {
+    color: #c62828;
+  }
+  
+  /* Operator card */
+  .summary-card.operator {
+    border-top: 4px solid #e65100;
+  }
+  
+  .summary-card.operator .icon {
+    color: #e65100;
+  }
+  
+  .summary-card.operator .count {
+    color: #e65100;
+  }
+  
+  /* Admin & Operator card */
+  .summary-card.admin-operator {
+    border-top: 4px solid #2e7d32;
+  }
+  
+  .summary-card.admin-operator .icon {
+    color: #2e7d32;
+  }
+  
+  .summary-card.admin-operator .count {
+    color: #2e7d32;
+  }
+  
+  /* None card */
+  .summary-card.none {
+    border-top: 4px solid #616161;
+  }
+  
+  .summary-card.none .icon {
+    color: #616161;
+  }
+  
+  .summary-card.none .count {
+    color: #616161;
+  }
+  
+  .card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  
+  .card-header {
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    border-bottom: none;
+  }
+  
+  .card-header.bg-primary {
+    background-color: #0d47a1 !important;
+  }
+  
+  .card-header.bg-info {
+    background-color: #01579b !important;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .alert-info {
+    background-color: rgba(1, 87, 155, 0.1);
+    border-color: rgba(1, 87, 155, 0.2);
+    color: #01579b;
+  }
+  
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table th {
+    font-weight: 600;
+    color: #212121;
+    border-bottom: 2px solid #e0e0e0;
+    padding: 1rem;
+  }
+  
+  .table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #e0e0e0;
+  }
+  
+  .table tbody tr {
+    transition: background-color 0.2s;
+  }
+  
+  .table tbody tr:hover {
+    background-color: rgba(13, 71, 161, 0.04);
+  }
+  
+  /* Custom role badges */
+  .role-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .role-badge i {
+    margin-right: 0.4rem;
+    font-size: 0.8rem;
+  }
+  
+  .role-badge.admin {
+    background-color: rgba(198, 40, 40, 0.15);
+    color: #c62828;
+    border: 1px solid rgba(198, 40, 40, 0.2);
+  }
+  
+  .role-badge.operator {
+    background-color: rgba(230, 81, 0, 0.15);
+    color: #e65100;
+    border: 1px solid rgba(230, 81, 0, 0.2);
+  }
+  
+  .role-badge.admin-operator {
+    background-color: rgba(46, 125, 50, 0.15);
+    color: #2e7d32;
+    border: 1px solid rgba(46, 125, 50, 0.2);
+  }
+  
+  .role-badge.none {
+    background-color: rgba(97, 97, 97, 0.15);
+    color: #616161;
+    border: 1px solid rgba(97, 97, 97, 0.2);
+  }
+  
+  /* Form elements */
+  .form-select {
+    border-color: #c8d4e3;
+    color: #212121;
+    font-weight: 500;
+  }
+  
+  .form-select:focus {
+    border-color: #0d47a1;
+    box-shadow: 0 0 0 0.25rem rgba(13, 71, 161, 0.25);
+  }
+  
+  .btn-primary {
+    background-color: #0d47a1;
+    border-color: #0d47a1;
+    font-weight: 500;
+  }
+  
+  .btn-primary:hover {
+    background-color: #083d8c;
+    border-color: #083d8c;
+  }
+  
+  /* Chart container */
+  .chart-container {
+    height: 300px;
+    position: relative;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .page-header {
+      padding: 1.25rem;
+    }
+    
+    .summary-cards {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .card-body, .page-header {
+      padding: 1rem;
+    }
+  }
+  
+  /* Flash messages */
+  .flash-messages {
+    margin-bottom: 1.5rem;
+  }
+  
+  .flash-messages .alert {
+    border-left: 4px solid;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    margin-bottom: 0.75rem;
+  }
+  
+  .flash-messages .alert-success {
+    border-left-color: #2e7d32;
+    background-color: rgba(46, 125, 50, 0.1);
+    color: #212121;
+  }
+  
+  .flash-messages .alert-danger {
+    border-left-color: #c62828;
+    background-color: rgba(198, 40, 40, 0.1);
+    color: #212121;
+  }
+  
+  .flash-messages .alert i {
+    font-size: 1.25rem;
+  }
+  
+  /* Interactive elements */
+  .pending-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #ffc107;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 1.5s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+  
+  /* Disabled form styling */
+  .disabled-form-message {
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    background-color: rgba(97, 97, 97, 0.05);
+    border: 1px solid rgba(97, 97, 97, 0.1);
+    color: #757575;
+    font-style: italic;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .disabled-form-message i {
+    margin-right: 0.5rem;
+    color: #616161;
+  }
+  
+  tr.current-user-row {
+    background-color: rgba(13, 71, 161, 0.04);
+  }
+  
+  tr.current-user-row:hover {
+    background-color: rgba(13, 71, 161, 0.08);
+  }
+</style>
+{% endblock %}
 
-<div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">Manage Staff Permissions</h5>
-    </div>
-    <div class="card-body">
-        <div class="alert alert-info">
-            <p><strong>Permission Types:</strong></p>
-            <ul>
-                <li><strong>Admin:</strong> Can create flights, add airplanes, add airports, add booking agents, and grant permissions</li>
-                <li><strong>Operator:</strong> Can change flight status</li>
-                <li><strong>Admin & Operator:</strong> Has both Admin and Operator permissions</li>
-                <li><strong>None:</strong> No special permissions</li>
-            </ul>
-        </div>
-        
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Name</th>
-                    <th>Current Role</th>
-                    <th>Update Permission</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for staff in staff_members %}
-                <tr>
-                    <td>{{ staff.Username }}</td>
-                    <td>{{ staff.First_Name }} {{ staff.Last_Name }}</td>
-                    <td>
-                        <span class="badge {% if staff.Permission == 'Admin' %}bg-danger{% elif staff.Permission == 'Operator' %}bg-warning text-dark{% elif staff.Permission == 'Admin & Operator' %}bg-success{% else %}bg-secondary{% endif %}">
-                            {{ staff.Permission or "None" }}
-                        </span>
-                    </td>
-                    <td>
-                        <form method="POST" class="d-flex">
-                            <input type="hidden" name="username" value="{{ staff.Username }}">
-                            <select name="new_role" class="form-select form-select-sm me-2" style="width: auto;">
-                                <option value="">Select Role</option>
-                                {% for role in permission_roles %}
-                                <option value="{{ role }}">{{ role or "None" }}</option>
-                                {% endfor %}
-                            </select>
-                            <button type="submit" name="update_permission" value="1" class="btn btn-sm btn-primary">Update</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+  <h2><i class="fas fa-user-shield me-2"></i>Staff Permissions Management</h2>
+  <p>Grant or revoke permissions for airline staff members to control their access to system features</p>
 </div>
 
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          <div class="d-flex align-items-center">
+            {% if category == 'success' %}
+              <i class="fas fa-check-circle me-2 text-success"></i>
+            {% else %}
+              <i class="fas fa-exclamation-circle me-2 text-danger"></i>
+            {% endif %}
+            <div><strong>{{ message }}</strong></div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Permission Summary Cards -->
+<div class="permission-summary">
+  <div class="summary-card admin">
+    <i class="fas fa-user-cog icon"></i>
+    <div class="count" id="adminCount">0</div>
+    <div class="label">Administrators</div>
+  </div>
+  
+  <div class="summary-card operator">
+    <i class="fas fa-headset icon"></i>
+    <div class="count" id="operatorCount">0</div>
+    <div class="label">Operators</div>
+  </div>
+  
+  <div class="summary-card admin-operator">
+    <i class="fas fa-user-tie icon"></i>
+    <div class="count" id="adminOperatorCount">0</div>
+    <div class="label">Admin-Operators</div>
+  </div>
+  
+  <div class="summary-card none">
+    <i class="fas fa-user icon"></i>
+    <div class="count" id="noneCount">0</div>
+    <div class="label">No Permissions</div>
+  </div>
+</div>
+
+<!-- Main Card -->
 <div class="card mb-4">
-    <div class="card-header bg-info text-white">
-        <h5 class="mb-0">Permission Distribution</h5>
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <div>
+      <i class="fas fa-users-cog me-2"></i>
+      <span>Manage Staff Permissions</span>
     </div>
-    <div class="card-body">
-        <canvas id="permissionChart"></canvas>
+    <div>
+      <span class="d-none d-md-inline text-white-50 me-2" id="lastUpdated">
+        <i class="fas fa-sync-alt me-1"></i> Last updated: <span id="updateTime"></span>
+      </span>
     </div>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-info mb-4">
+      <div class="d-flex">
+        <div class="me-3 fs-3">
+          <i class="fas fa-info-circle"></i>
+        </div>
+        <div>
+          <p class="mb-2"><strong>Permission Types:</strong></p>
+          <ul class="mb-0">
+            <li><strong>Admin:</strong> Can create flights, add airplanes, add airports, add booking agents, and grant permissions</li>
+            <li><strong>Operator:</strong> Can change flight status</li>
+            <li><strong>Admin & Operator:</strong> Has both Admin and Operator permissions</li>
+            <li><strong>None:</strong> No special permissions</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Search and Filter -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex align-items-center">
+        <div class="position-relative">
+          <input type="text" class="form-control" placeholder="Search staff..." id="staffSearch">
+          <i class="fas fa-search position-absolute" style="right: 10px; top: 10px; color: #9e9e9e;"></i>
+        </div>
+      </div>
+      <div class="d-flex align-items-center">
+        <div class="me-2 d-none d-md-block">Filter by role:</div>
+        <select class="form-select" id="roleFilter">
+          <option value="all">All roles</option>
+          <option value="Admin">Admin</option>
+          <option value="Operator">Operator</option>
+          <option value="Admin & Operator">Admin & Operator</option>
+          <option value="None">None</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Staff Permissions Table -->
+    <div class="table-responsive">
+      <table class="table table-hover" id="staffTable">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Current Role</th>
+            <th>Update Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for staff in staff_members %}
+          <tr data-role="{{ staff.Permission or 'None' }}" {% if staff.Username == current_username %}class="current-user-row"{% endif %}>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="me-2">
+                  {% if staff.Permission == 'Admin' %}
+                    <i class="fas fa-user-cog text-danger"></i>
+                  {% elif staff.Permission == 'Operator' %}
+                    <i class="fas fa-headset text-warning"></i>
+                  {% elif staff.Permission == 'Admin & Operator' %}
+                    <i class="fas fa-user-tie text-success"></i>
+                  {% else %}
+                    <i class="fas fa-user text-secondary"></i>
+                  {% endif %}
+                </div>
+                <div>
+                  {{ staff.Username }}
+                  {% if staff.Username == current_username %}
+                    <span class="badge rounded-pill bg-primary ms-2 small">You</span>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td>{{ staff.First_Name }} {{ staff.Last_Name }}</td>
+            <td>
+              <span class="role-badge 
+                {% if staff.Permission == 'Admin' %}admin
+                {% elif staff.Permission == 'Operator' %}operator
+                {% elif staff.Permission == 'Admin & Operator' %}admin-operator
+                {% else %}none{% endif %}">
+                
+                {% if staff.Permission == 'Admin' %}
+                  <i class="fas fa-shield-alt"></i>
+                {% elif staff.Permission == 'Operator' %}
+                  <i class="fas fa-cogs"></i>
+                {% elif staff.Permission == 'Admin & Operator' %}
+                  <i class="fas fa-crown"></i>
+                {% else %}
+                  <i class="fas fa-user"></i>
+                {% endif %}
+                
+                {{ staff.Permission or "None" }}
+              </span>
+            </td>
+            <td>
+              {% if staff.Username == current_username %}
+                <div class="disabled-form-message">
+                  <i class="fas fa-lock"></i> You cannot modify your own permissions
+                </div>
+              {% else %}
+                <form method="POST" class="role-update-form">
+                  <div class="d-flex">
+                    <input type="hidden" name="username" value="{{ staff.Username }}">
+                    <select name="new_role" class="form-select form-select-sm me-2" style="width: auto;" aria-label="Select new role">
+                      <option value="">Select Role</option>
+                      {% for role in permission_roles %}
+                        <option value="{{ role }}">{{ role or "None" }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="submit" name="update_permission" value="1" class="btn btn-sm btn-primary">
+                      <i class="fas fa-save me-1"></i> Update
+                    </button>
+                  </div>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="mt-4 text-muted small">
+      <i class="fas fa-info-circle me-1"></i> Changes to permissions take effect immediately. Staff members will see updated access on their next action.
+    </div>
+  </div>
+</div>
+
+<!-- Distribution Charts -->
+<div class="row">
+  <div class="col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-info text-white">
+        <i class="fas fa-chart-pie me-2"></i>
+        <span>Permission Distribution</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="permissionChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-primary text-white">
+        <i class="fas fa-chart-bar me-2"></i>
+        <span>Permission Activity</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="activityChart"></canvas>
+        </div>
+        <div class="text-center mt-3 text-muted small">
+          Activity data shows permission changes over the last 30 days
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize counters
+    let adminCount = 0;
+    let operatorCount = 0;
+    let adminOperatorCount = 0;
+    let noneCount = 0;
+    
     // Calculate permission distribution
     const permissions = {
-        'Admin': 0,
-        'Operator': 0,
-        'Admin & Operator': 0,
-        'None': 0
+      'Admin': 0,
+      'Operator': 0,
+      'Admin & Operator': 0,
+      'None': 0
     };
     
     {% for staff in staff_members %}
-        {% if staff.Permission %}
-            permissions['{{ staff.Permission }}']++;
-        {% else %}
-            permissions['None']++;
-        {% endif %}
+      {% if staff.Permission == 'Admin' %}
+        adminCount++;
+        permissions['Admin']++;
+      {% elif staff.Permission == 'Operator' %}
+        operatorCount++;
+        permissions['Operator']++;
+      {% elif staff.Permission == 'Admin & Operator' %}
+        adminOperatorCount++;
+        permissions['Admin & Operator']++;
+      {% else %}
+        noneCount++;
+        permissions['None']++;
+      {% endif %}
     {% endfor %}
+    
+    // Update summary cards
+    document.getElementById('adminCount').textContent = adminCount;
+    document.getElementById('operatorCount').textContent = operatorCount;
+    document.getElementById('adminOperatorCount').textContent = adminOperatorCount;
+    document.getElementById('noneCount').textContent = noneCount;
     
     // Permission Distribution Chart
     const permissionCtx = document.getElementById('permissionChart').getContext('2d');
     const permissionChart = new Chart(permissionCtx, {
-        type: 'pie',
-        data: {
-            labels: Object.keys(permissions),
-            datasets: [{
-                label: 'Permission Distribution',
-                data: Object.values(permissions),
-                backgroundColor: [
-                    'rgba(220, 53, 69, 0.7)',    // Admin - danger
-                    'rgba(255, 193, 7, 0.7)',    // Operator - warning
-                    'rgba(25, 135, 84, 0.7)',    // Admin & Operator - success
-                    'rgba(108, 117, 125, 0.7)'   // None - secondary
-                ],
-                borderWidth: 1
-            }]
+      type: 'pie',
+      data: {
+        labels: Object.keys(permissions),
+        datasets: [{
+          label: 'Permission Distribution',
+          data: Object.values(permissions),
+          backgroundColor: [
+            'rgba(198, 40, 40, 0.8)',    // Admin - darker red
+            'rgba(230, 81, 0, 0.8)',     // Operator - darker orange
+            'rgba(46, 125, 50, 0.8)',    // Admin & Operator - darker green
+            'rgba(97, 97, 97, 0.8)'      // None - darker gray
+          ],
+          borderColor: [
+            'rgba(198, 40, 40, 1)',
+            'rgba(230, 81, 0, 1)',
+            'rgba(46, 125, 50, 1)',
+            'rgba(97, 97, 97, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#212121',
+              font: {
+                weight: 500
+              },
+              padding: 20
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
+          }
         }
+      }
     });
+    
+    // Activity Chart (sample data)
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    const activityChart = new Chart(activityCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        datasets: [
+          {
+            label: 'Added',
+            data: [2, 1, 3, 2],
+            backgroundColor: 'rgba(46, 125, 50, 0.8)'
+          },
+          {
+            label: 'Modified',
+            data: [1, 3, 2, 4],
+            backgroundColor: 'rgba(13, 71, 161, 0.8)'
+          },
+          {
+            label: 'Removed',
+            data: [0, 1, 0, 1],
+            backgroundColor: 'rgba(198, 40, 40, 0.8)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            stacked: true,
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: '#424242'
+            }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: '#424242'
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.1)'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: '#212121',
+              font: {
+                weight: 500
+              },
+              padding: 20
+            }
+          }
+        }
+      }
+    });
+    
+    // Set "last updated" time
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                    now.getMinutes().toString().padStart(2, '0');
+    document.getElementById('updateTime').textContent = timeStr;
+    
+    // Search functionality
+    const staffSearch = document.getElementById('staffSearch');
+    const staffRows = document.querySelectorAll('#staffTable tbody tr');
+    
+    staffSearch.addEventListener('keyup', function() {
+      const searchValue = this.value.toLowerCase();
+      
+      staffRows.forEach(row => {
+        const username = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+        const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        
+        if (username.includes(searchValue) || name.includes(searchValue)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+    
+    // Role filter functionality
+    const roleFilter = document.getElementById('roleFilter');
+    
+    roleFilter.addEventListener('change', function() {
+      const filterValue = this.value;
+      
+      staffRows.forEach(row => {
+        if (filterValue === 'all' || row.getAttribute('data-role') === filterValue) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+    
+    // Animation for role updates
+    const roleForms = document.querySelectorAll('.role-update-form');
+    
+    roleForms.forEach(form => {
+      form.addEventListener('submit', function(e) {
+        // This is where you'd add animation if needed
+        // e.g., show a spinner, highlight the row, etc.
+        
+        const row = this.closest('tr');
+        row.style.backgroundColor = 'rgba(13, 71, 161, 0.1)';
+        
+        // We're not preventing the default submit action
+        // but you could do that and use fetch API instead
+      });
+    });
+  });
 </script>
 {% endblock %}

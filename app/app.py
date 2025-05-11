@@ -194,13 +194,18 @@ def main() -> None:
         value = value.strip()
         return value or None        
     
+    # 1. Backend fix in app.py - Update the signup route with proper validation
+
     @app.route("/signup", methods=["GET", "POST"])
     def signup():
         if request.method == "POST":
-            role      = request.form["role"]
-            raw_user  = request.form["username"].strip()
-            username  = raw_user.lower() if role != "staff" else raw_user  # e-mails case-insensitive
-            password  = request.form["password"]
+            # Debug the request data
+            print("Request form data:", request.form)
+            
+            role = request.form["role"]
+            raw_user = request.form["username"].strip()
+            username = raw_user.lower() if role != "staff" else raw_user  # e-mails case-insensitive
+            password = request.form["password"]
 
             # ── 1. pre-flight checks (prevent obvious dupes) ─────────────────
             if role == "customer" and public_db.customer_exists(username):
@@ -220,51 +225,79 @@ def main() -> None:
                 return redirect(url_for("signup"))
 
             # ── 2. attempt insert – catch *any* duplicates that slipped past ──
+            try:
+                if role == "customer":
+                    public_db.create_customer(
+                        email=username,
+                        password=password,
+                        first_name=request.form["first_name"],
+                        middle_name=request.form.get("middle_name"),
+                        last_name=request.form["last_name"],
+                        state=request.form["state"],
+                        city=request.form["city"],
+                        building_name=request.form["building_name"],
+                        zip_code=request.form["zip_code"],
+                        phone=request.form["phone"],
+                        passport_no=request.form["passport_no"],
+                        passport_country=request.form["passport_country"],
+                        passport_exp=_clean(request.form.get("passport_exp")),  
+                        dob=_clean(request.form.get("dob")),                    
+                    )
 
-            if role == "customer":
-                public_db.create_customer(
-                    email=username,
-                    password=password,
-                    first_name=request.form["first_name"],
-                    middle_name=request.form.get("middle_name"),
-                    last_name=request.form["last_name"],
-                    state=request.form["state"],
-                    city=request.form["city"],
-                    building_name=request.form["building_name"],
-                    zip_code=request.form["zip_code"],
-                    phone=request.form["phone"],
-                    passport_no=request.form["passport_no"],
-                    passport_country=request.form["passport_country"],
-                    passport_exp=_clean(request.form.get("passport_exp")),  
-                    dob=_clean(request.form.get("dob")),                    
-                )
+                elif role == "agent":
+                    public_db.create_booking_agent(
+                        email=username,
+                        password=password,
+                        booking_agent_id=request.form["booking_agent_id"].strip(),
+                    )
 
-            elif role == "agent":
-                public_db.create_booking_agent(
-                    email=username,
-                    password=password,
-                    booking_agent_id=request.form["booking_agent_id"].strip(),
-                )
+                elif role == "staff":
+                    # Handle the duplicate keys issue by getting all values for each key
+                    # and choosing the non-empty ones
+                    
+                    # Get all values for each field
+                    first_name_values = request.form.getlist("first_name")
+                    last_name_values = request.form.getlist("last_name")
+                    middle_name_values = request.form.getlist("middle_name")
+                    dob_values = request.form.getlist("dob")
+                    airline_name = request.form.get("airline_name", "").strip()
+                    
+                    # Choose the non-empty values (the last non-empty value)
+                    first_name = next((val for val in reversed(first_name_values) if val.strip()), "")
+                    last_name = next((val for val in reversed(last_name_values) if val.strip()), "")
+                    middle_name = next((val for val in reversed(middle_name_values) if val.strip()), None)
+                    dob = next((val for val in reversed(dob_values) if val.strip()), None)
+                    
+                    # Print debugging info
+                    print("Staff signup processed values:")
+                    print(f"Username: {username}")
+                    print(f"First name: {first_name}")
+                    print(f"Last name: {last_name}")
+                    print(f"Middle name: {middle_name}")
+                    print(f"DoB: {dob}")
+                    print(f"Airline: {airline_name}")
+                    
+                    # Create the staff with the correct values
+                    public_db.create_staff(
+                        username=username,
+                        password=password,
+                        first_name=first_name,
+                        middle_name=middle_name,
+                        last_name=last_name,
+                        airline_name=airline_name,
+                        dob=dob
+                    )
 
-            elif role == "staff":
-                public_db.create_staff(
-                    username=username,
-                    password=password,
-                    first_name=request.form["first_name"],
-                    middle_name=_clean(request.form.get("middle_name")),
-                    last_name=request.form["last_name"],
-                    airline_name=request.form["airline_name"],
-                    dob=_clean(request.form.get("dob")),                
-                )
-
-            flash("Account created! You can now log in.", "success")
-            return redirect(url_for("login"))
+                flash("Account created! You can now log in.", "success")
+                return redirect(url_for("login"))
+                
+            except Exception as e:
+                flash(f"Error creating account: {str(e)}", "danger")
+                print(f"Error during signup: {str(e)}")
+                return redirect(url_for("signup"))
 
         # GET  → show blank form (flashes, if any, are rendered by template)
         return render_template("signup.html")
-
-
-
 
     def _iso2date(s: str | None):
             """Return date from YYYY-MM-DD or None (invalid → None)."""
@@ -278,7 +311,7 @@ def main() -> None:
     # -------------------------- homepages -----------------------
     @app.route("/homepage")
     def home():
-        role    = session.get("role")
+        role = session.get("role")
         user_id = session.get("user_id")
         if not role or not user_id:
             return redirect(url_for("login"))
@@ -287,22 +320,22 @@ def main() -> None:
         # ---------------------------- CUSTOMER ---------------------------- #
         # ------------------------------------------------------------------ #
         if role == "customer":
-            profile      = customer_db.profile(user_id) or {}
-            first_name   = profile.get("First_Name", "")
-            last_name    = profile.get("Last_Name", "")
-            flights      = customer_db.get_upcoming_flights(user_id)          # ← only tickets
+            profile = customer_db.profile(user_id) or {}
+            first_name = profile.get("First_Name", "")
+            last_name = profile.get("Last_Name", "")
+            flights = customer_db.get_upcoming_flights(user_id)  # ← only tickets
             dep_airports = customer_db.get_departure_airports()
             arr_airports = customer_db.get_arrival_airports()
 
             return render_template(
                 "homepage.html",
-                user_type          = "Customer",
-                email              = user_id,
-                first_name         = first_name,
-                last_name          = last_name,
-                upcoming_flights   = flights,
-                departure_airports = dep_airports,
-                arrival_airports   = arr_airports,
+                user_type="Customer",
+                email=user_id,
+                first_name=first_name,
+                last_name=last_name,
+                upcoming_flights=flights,
+                departure_airports=dep_airports,
+                arrival_airports=arr_airports,
             )
 
         # ------------------------------------------------------------------ #
@@ -310,19 +343,22 @@ def main() -> None:
         # ------------------------------------------------------------------ #
         if role == "agent":
             airlines = agent_db.agent_airlines(user_id)
+            
+            # Get flights booked by this agent using the fixed method
             flights = agent_db.get_upcoming_flights(user_id)
-
+                        
+            # Get available departure and arrival airports for this agent's authorized airlines
             dep_rows = agent_db.list_agent_departure_airports(airlines)
             arr_rows = agent_db.list_agent_arrival_airports(airlines)
 
             return render_template(
                 "homepage.html",
-                user_type          = "Booking Agent",
-                email              = user_id,
-                airline_names       = ", ".join(airlines) if airlines else "",
-                upcoming_flights   = flights,
-                departure_airports = dep_rows,
-                arrival_airports   = arr_rows,
+                user_type="Booking Agent",
+                email=user_id,
+                airline_names=", ".join(airlines) if airlines else "",
+                upcoming_flights=flights,
+                departure_airports=dep_rows,
+                arrival_airports=arr_rows,
             )
 
         # ------------------------------------------------------------------ #
@@ -332,30 +368,30 @@ def main() -> None:
             profile = staff_db.profile(user_id)
             if not profile:
                 return redirect(url_for("logout"))
-            permissions  = staff_db.permissions(user_id)
+            permissions = staff_db.permissions(user_id)
             airline_name = profile["Airline"]
 
             flights = staff_db.search_upcoming_flights(
-                airline_staff_id = user_id,
-                role             = "airline_staff"
+                airline_staff_id=user_id,
+                role="airline_staff"
             )
 
             departure_airports = staff_db.get_departure_airports(airline_name)
-            arrival_airports   = staff_db.get_arrival_airports(airline_name)
-            is_operator        = "Operator" in permissions
+            arrival_airports = staff_db.get_arrival_airports(airline_name)
+            is_operator = "Operator" in permissions
 
             return render_template(
                 "homepage.html",
-                user_type          = "Airline Staff",
-                email              = user_id,
-                first_name         = profile["First_Name"],
-                last_name          = profile["Last_Name"],
-                airline_name       = airline_name,
-                permissions        = permissions,
-                is_operator        = is_operator,
-                upcoming_flights   = flights,
-                departure_airports = departure_airports,
-                arrival_airports   = arrival_airports,
+                user_type="Airline Staff",
+                email=user_id,
+                first_name=profile["First_Name"],
+                last_name=profile["Last_Name"],
+                airline_name=airline_name,
+                permissions=permissions,
+                is_operator=is_operator,
+                upcoming_flights=flights,
+                departure_airports=departure_airports,
+                arrival_airports=arrival_airports,
             )
 
         # unknown role
@@ -912,7 +948,6 @@ def main() -> None:
     
     @app.route("/airline_staff/change_status/<airline>/<flight_id>", methods=["POST"])
     def airline_staff_change_status(airline: str, flight_id: str):
-        print(f"Changing status for {flight_id} at {airline}...")
         guard = _require_airline_staff()
         if guard:
             return guard
@@ -937,11 +972,16 @@ def main() -> None:
     @app.route("/staff/flight/new", methods=["GET", "POST"])
     @require_perm("Admin")
     def staff_new_flight():
+        airline = _airline()
+        
+        # Get all available airports with city information
+        airports = staff_db.get_airports_with_cities()
+        
         if request.method == "POST":
             # Create a dictionary from the form data
             attrs = {
                 # Map form field names to database column names
-                "Airline": _airline(),  # Enforce current airline
+                "Airline": airline,  # Enforce current airline
                 "Airplane_ID": request.form["Airplane_ID"],
                 "Departure_Airport": request.form["Departure_Airport"],
                 "Departure_Date": request.form["Departure_Date"],
@@ -962,18 +1002,31 @@ def main() -> None:
                 flash(str(err), "danger")
             except Exception as err:
                 flash(f"Error creating flight: {str(err)}", "danger")
-                
-        return render_template("staff_new_flight.html")
+        
+        return render_template(
+            "staff_new_flight.html",
+            airports=airports
+        )
     # ──────────────── 4. Add airplane (+ list) (Admin) ───────────────
     @app.route("/staff/airplane/new", methods=["GET", "POST"])
     @require_perm("Admin")
     def staff_add_airplane():
         airline = _airline()
         if request.method == "POST":
-            staff_db.add_airplane(airline,
+            try:
+                staff_db.add_airplane(airline,
                                 request.form["plane_id"],
                                 request.form["seats"])
-            flash("Airplane added ✅", "success")
+                flash("Airplane added ✅", "success")
+            except mysql.connector.Error as err:
+                # Check for duplicate entry error (MySQL error code 1062)
+                if err.errno == 1062:
+                    flash(f"Error: Airplane ID {request.form['plane_id']} already exists for this airline", "danger")
+                else:
+                    flash(f"Database error: {err}", "danger")
+            except Exception as e:
+                flash(f"An error occurred: {str(e)}", "danger")
+            
             return redirect(url_for("staff_add_airplane"))
 
         planes = staff_db._fetchall("SELECT * FROM Airplane WHERE Airline=%s",
@@ -985,29 +1038,50 @@ def main() -> None:
     @require_perm("Admin")
     def staff_add_airport():
         if request.method == "POST":
-            staff_db.add_airport(request.form["name"], request.form["city"])
-            flash("Airport added ✅", "success")
+            try:
+                staff_db.add_airport(request.form["name"], request.form["city"])
+                flash("Airport added ✅", "success")
+            except mysql.connector.Error as err:
+                # Check for duplicate entry error
+                if err.errno == 1062:
+                    flash(f"Error: Airport code '{request.form['name']}' already exists in the database", "danger")
+                else:
+                    flash(f"Database error: {err}", "danger")
+            except Exception as e:
+                flash(f"An error occurred: {str(e)}", "danger")
+            
             return redirect(url_for("staff_add_airport"))
+            
         return render_template("staff_add_airport.html")
 
     @app.route("/staff/booking_agents", methods=["GET", "POST"])
-    @require_perm("Admin")
+    @require_staff  # Changed from @require_perm("Admin") to allow all staff to view
     def staff_view_booking_agents():
         """
         Comprehensive view and management of booking agents for the airline.
-        Shows top and bottom performing agents, and allows adding new agents.
+        Shows top and bottom performing agents, and allows admins to add new agents.
         """
         airline = _airline()  # Get the current staff member's airline
         
-        # Handle POST request to add a new booking agent
+        # Get user permissions to check if they're an admin
+        user_id = session["user_id"]
+        permissions = staff_db.permissions(user_id)
+        is_admin = "Admin" in permissions
+        
+        # Handle POST request to add a new booking agent (admin only)
         if request.method == "POST":
+            # Verify the user is an admin before allowing them to add agents
+            if not is_admin:
+                flash("Permission denied: Only admins can add booking agents", "danger")
+                return redirect(url_for("staff_view_booking_agents"))
+                
             agent_id = request.form.get("agent_id")
             
             if not agent_id:
                 flash("Agent ID is required", "danger")
             else:
                 try:
-                    staff_db.add_booking_agent_to_airline(airline, agent_id)
+                    staff_db.add_booking_agent_to_airline(agent_id, airline)  # Note: Fixed parameter order
                     flash(f"Booking agent {agent_id} added to {airline} successfully!", "success")
                 except Exception as e:
                     flash(f"Failed to add booking agent: {str(e)}", "danger")
@@ -1024,7 +1098,10 @@ def main() -> None:
         bottom_agents = staff_db.bottom_booking_agents(airline, period)
         
         # Get list of booking agents not currently working for this airline
-        available_agents = staff_db.list_booking_agents_not_working_for_airline(airline)
+        # Only fetch available agents if the user is an admin
+        available_agents = []
+        if is_admin:
+            available_agents = staff_db.list_booking_agents_not_working_for_airline(airline)
         
         return render_template(
             "staff_booking_agents.html",
@@ -1034,7 +1111,8 @@ def main() -> None:
             sales_distribution=agent_data['agent_sales_distribution'],
             monthly_sales=agent_data['monthly_sales'],
             available_agents=available_agents,
-            period=period
+            period=period,
+            is_admin=is_admin  # Pass admin status to the template
         )
 
 
@@ -1058,11 +1136,12 @@ def main() -> None:
         return redirect(url_for("staff_view_booking_agents"))
 
     # ────────────────── Manage Staff Permissions ────────────────────────
-    @app.route("/staff/permissions")
+    @app.route("/staff/permissions", methods=["GET", "POST"])
     @require_perm("Admin")
     def staff_manage_permissions():
         """View and update permissions for all staff members of the same airline."""
         airline = _airline()
+        current_username = session.get("user_id")  # Get the current user's username
         
         # Handle POST request to update a staff member's permission
         if request.method == "POST":
@@ -1071,6 +1150,8 @@ def main() -> None:
             
             if not username:
                 flash("Username is required", "danger")
+            elif username == current_username:
+                flash("You cannot change your own permissions", "danger")
             else:
                 try:
                     staff_db.update_staff_permission(username, new_role)
@@ -1090,7 +1171,8 @@ def main() -> None:
         return render_template(
             "staff_permissions.html",
             staff_members=staff_members,
-            permission_roles=permission_roles
+            permission_roles=permission_roles,
+            current_username=current_username  # Pass the current username to the template
         )
     @app.route("/staff/permissions/update", methods=["POST"])
     @require_perm("Admin")
@@ -1115,17 +1197,48 @@ def main() -> None:
     @app.route("/staff/customers", methods=["GET", "POST"])
     @require_staff
     def staff_customers():
-        airline  = _airline()
-        frequent = staff_db.frequent_customer_last_year(airline)
-
+        airline = _airline()
+        
+        # Get top frequent customers (expanded from just one)
+        top_customers = staff_db.top_customers_by_flights(airline, limit=5)
+        
+        # Get customer destinations data for visualization
+        destinations_data = staff_db.customer_destinations(airline)
+        
+        # Get monthly customer activity for trend analysis
+        monthly_activity = staff_db.monthly_customer_activity(airline)
+        
+        # Get ticket revenue by customer category
+        revenue_by_category = staff_db.revenue_by_customer_category(airline)
+        
+        # For individual customer lookup
         flights = []
-        email   = ""
+        email = ""
+        customer_info = None
+        flight_stats = None
+        
         if request.method == "POST":
-            email   = request.form["customer_email"].strip()
+            email = request.form["customer_email"].strip()
+            
+            # Get detailed flight data for this customer
             flights = staff_db.flights_of_customer(airline, email)
+            
+            # Get additional customer information if they exist
+            if flights:
+                # Get customer profile information
+                customer_info = staff_db.get_customer_details(email)
+                
+                # Get statistics about the customer's flights
+                flight_stats = staff_db.get_customer_flight_stats(airline, email)
 
         return render_template("staff_customers.html",
-                            frequent=frequent,
+                            airline=airline,
+                            top_customers=top_customers,
+                            destinations_data=destinations_data,
+                            monthly_activity=monthly_activity,
+                            revenue_by_category=revenue_by_category,
+                            customer_info=customer_info,
+                            flight_stats=flight_stats,
                             email=email,
                             flights=flights)
 

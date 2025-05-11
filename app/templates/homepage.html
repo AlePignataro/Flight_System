@@ -8,8 +8,9 @@
         background-color: #f8f9fa;
         border-radius: 8px;
         padding: 1.5rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
         border-left: 4px solid var(--brand-primary);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
     
     .welcome-banner h2 {
@@ -18,37 +19,126 @@
         font-weight: 600;
     }
     
-    .action-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
+    /* Improved action buttons */
+    .action-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1rem;
         margin-bottom: 2rem;
     }
     
-    .action-buttons .btn {
-        transition: all 0.2s;
-        border-radius: 6px;
+    .action-card {
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #eaeaea;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-color: #d0d0d0;
+    }
+    
+    .action-card-header {
+        background-color: var(--brand-primary);
+        color: white;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    
+    .action-card.admin .action-card-header {
+        background-color: var(--brand-success);
+    }
+    
+    .action-card-body {
+        padding: 1.25rem;
+        text-align: center;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .action-card-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--brand-primary);
+    }
+    
+    .action-card.admin .action-card-icon {
+        color: var(--brand-success);
+    }
+    
+    .action-card-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    
+    .action-card-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    
+    .action-card-link {
+        margin-top: auto;
+        color: var(--brand-primary);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-block;
         padding: 0.5rem 1rem;
+        border-radius: 4px;
+        border: 1px solid var(--brand-primary);
+        transition: all 0.2s;
     }
     
-    .action-buttons .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    .action-card-link:hover {
+        background-color: var(--brand-primary);
+        color: white;
     }
     
+    .action-card.admin .action-card-link {
+        color: var(--brand-success);
+        border-color: var(--brand-success);
+    }
+    
+    .action-card.admin .action-card-link:hover {
+        background-color: var(--brand-success);
+        color: white;
+    }
+    
+    /* Filters card */
     .filters-card {
         background-color: white;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         margin-bottom: 2rem;
         overflow: hidden;
+        border: 1px solid #eaeaea;
     }
     
     .filters-card-header {
-        background-color: #0d6efd;
+        background-color: var(--brand-primary);
         color: white;
         padding: 1rem 1.5rem;
         font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    
+    .filters-card-header i {
+        margin-right: 0.5rem;
     }
     
     .filters-card-body {
@@ -67,13 +157,14 @@
         background-color: #fff;
     }
     
+    /* Updated table header colors to match the design */
     .flights-table th {
-        background-color: #0d6efd;
-        color: white;
+        background-color: #f8f9fa; /* Light gray header background */
+        color: #495057; /* Darker text color for better contrast */
         text-align: left;
         padding: 1rem;
         font-weight: 600;
-        border-bottom: 2px solid #dee2e6;
+        border-bottom: 1px solid #dee2e6;
     }
     
     .flights-table tr:nth-child(even) {
@@ -91,7 +182,7 @@
     }
     
     .flights-table tr:hover {
-        background-color: rgba(13, 110, 253, 0.08);
+        background-color: rgba(13, 110, 253, 0.05);
     }
 
     /* Improved status badges */
@@ -139,16 +230,68 @@
     .flights-header h3 {
         margin-bottom: 0;
         color: #333;
+        font-size: 1.5rem;
+        font-weight: 600;
     }
     
     .flights-count {
-        margin-left: 0.5rem;
-        background-color: #0d6efd;
+        margin-left: 0.75rem;
+        background-color: var(--brand-primary);
         color: white;
         padding: 0.2rem 0.6rem;
         border-radius: 50px;
         font-size: 0.85rem;
         font-weight: 600;
+    }
+    
+    /* Customer badge styling */
+    .customer-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        background-color: #e9ecef;
+        color: #495057;
+    }
+    
+    .customer-badge i {
+        margin-right: 0.5rem;
+        color: #6c757d;
+    }
+    
+    /* Status badges matching the screenshot */
+    .status-badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .status-badge.upcoming {
+        background-color: #e3f2fd;
+        color: #0d47a1;
+    }
+    
+    /* Flight section header */
+    .flight-section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .flight-section-header i {
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+        color: #495057;
+    }
+    
+    .flight-section-header h3 {
+        margin-bottom: 0;
+        font-weight: 600;
+        color: #212529;
     }
     
     /* Responsive table */
@@ -188,6 +331,10 @@
             text-align: left;
             color: #495057;
         }
+        
+        .action-cards {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        }
     }
 </style>
 {% endblock %}
@@ -209,6 +356,8 @@
         {% elif user_type == 'Airline Staff' %}
             <h2><i class="fas fa-id-badge me-2"></i>Welcome, {{ first_name }} {{ last_name }}</h2>
             <p class="text-muted mb-0">Airline: <strong>{{ airline_name }}</strong></p>
+            <p class="text-muted mb-0">Role:  <strong>{{ permissions }}</strong></p>
+            </p>
         {% endif %}
     </div>
 
@@ -221,68 +370,169 @@
         </div>
     {% endfor %}
 
-    <!-- Action Buttons -->
-    <div class="action-buttons">
+    <!-- Action Cards -->
+    <div class="action-cards">
         {% if user_type == 'Customer' %}
-            <a class="btn btn-outline-primary" href="{{ url_for('customer_flight_search') }}">
-                <i class="fas fa-search me-1"></i> Search Flights
-            </a>
-            <a class="btn btn-outline-primary" href="{{ url_for('customer_past_flights') }}">
-                <i class="fas fa-history me-1"></i> Past Flights
-            </a>
-            <a class="btn btn-outline-primary" href="{{ url_for('customer_spending') }}">
-                <i class="fas fa-chart-line me-1"></i> Track Spending
-            </a>
+            <div class="action-card">
+                <div class="action-card-header">Search</div>
+                <div class="action-card-body">
+                    <div class="action-card-icon"><i class="fas fa-search"></i></div>
+                    <h5 class="action-card-title">Find Flights</h5>
+                    <p class="action-card-text">Search for available flights and purchase tickets</p>
+                    <a href="{{ url_for('customer_flight_search') }}" class="action-card-link">Search Now</a>
+                </div>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-card-header">History</div>
+                <div class="action-card-body">
+                    <div class="action-card-icon"><i class="fas fa-history"></i></div>
+                    <h5 class="action-card-title">Past Flights</h5>
+                    <p class="action-card-text">View your travel history and past flight details</p>
+                    <a href="{{ url_for('customer_past_flights') }}" class="action-card-link">View History</a>
+                </div>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-card-header">Analytics</div>
+                <div class="action-card-body">
+                    <div class="action-card-icon"><i class="fas fa-chart-line"></i></div>
+                    <h5 class="action-card-title">Track Spending</h5>
+                    <p class="action-card-text">Analyze your travel expenses and spending patterns</p>
+                    <a href="{{ url_for('customer_spending') }}" class="action-card-link">View Analytics</a>
+                </div>
+            </div>
+            
         {% elif user_type == 'Booking Agent' %}
-            {% if airline_names %}       
-                <a class="btn btn-outline-primary" href="{{ url_for('agent_flight_search') }}">
-                    <i class="fas fa-search me-1"></i> Search/Book
-                </a>
-                <a class="btn btn-outline-primary" href="{{ url_for('agent_past_flights') }}">
-                    <i class="fas fa-history me-1"></i> Past Flights
-                </a>
-                <a class="btn btn-outline-primary" href="{{ url_for('agent_commission') }}">
-                    <i class="fas fa-money-bill-wave me-1"></i> Commission
-                </a>
-                <a class="btn btn-outline-primary" href="{{ url_for('agent_top_customers') }}">
-                    <i class="fas fa-trophy me-1"></i> Top Customers
-                </a>
+            {% if airline_names %}
+                <div class="action-card">
+                    <div class="action-card-header">Book</div>
+                    <div class="action-card-body">
+                        <div class="action-card-icon"><i class="fas fa-ticket-alt"></i></div>
+                        <h5 class="action-card-title">Search & Book</h5>
+                        <p class="action-card-text">Find flights and book tickets for customers</p>
+                        <a href="{{ url_for('agent_flight_search') }}" class="action-card-link">Search Now</a>
+                    </div>
+                </div>
+                
+                <div class="action-card">
+                    <div class="action-card-header">History</div>
+                    <div class="action-card-body">
+                        <div class="action-card-icon"><i class="fas fa-history"></i></div>
+                        <h5 class="action-card-title">Past Flights</h5>
+                        <p class="action-card-text">View history of tickets you've sold</p>
+                        <a href="{{ url_for('agent_past_flights') }}" class="action-card-link">View History</a>
+                    </div>
+                </div>
+                
+                <div class="action-card">
+                    <div class="action-card-header">Earnings</div>
+                    <div class="action-card-body">
+                        <div class="action-card-icon"><i class="fas fa-money-bill-wave"></i></div>
+                        <h5 class="action-card-title">Commission</h5>
+                        <p class="action-card-text">Track your earnings and commission</p>
+                        <a href="{{ url_for('agent_commission') }}" class="action-card-link">View Earnings</a>
+                    </div>
+                </div>
+                
+                <div class="action-card">
+                    <div class="action-card-header">Analytics</div>
+                    <div class="action-card-body">
+                        <div class="action-card-icon"><i class="fas fa-trophy"></i></div>
+                        <h5 class="action-card-title">Top Customers</h5>
+                        <p class="action-card-text">See your most valuable clients</p>
+                        <a href="{{ url_for('agent_top_customers') }}" class="action-card-link">View Analytics</a>
+                    </div>
+                </div>
             {% endif %}
+            
         {% elif user_type == 'Airline Staff' %}
-            <a class="btn btn-outline-primary" href="{{ url_for('staff_flights') }}">
-                <i class="fas fa-plane me-1"></i> My Flights
-            </a>
-            <a class="btn btn-outline-primary" href="{{ url_for('staff_analytics') }}">
-                <i class="fas fa-chart-bar me-1"></i> Analytics
-            </a>
-            <a class="btn btn-outline-primary" href="{{ url_for('staff_view_booking_agents') }}">
-                <i class="fas fa-users me-1"></i> Booking Agents
-            </a>
-            <a class="btn btn-outline-primary" href="{{ url_for('staff_customers') }}">
-                <i class="fas fa-user-friends me-1"></i> Customers
-            </a>
+            <div class="action-card">
+                <div class="action-card-header">Flights</div>
+                <div class="action-card-body">
+                    <div class="action-card-icon"><i class="fas fa-plane"></i></div>
+                    <h5 class="action-card-title">Manage Flights</h5>
+                    <p class="action-card-text">View and manage airline flights</p>
+                    <a href="{{ url_for('staff_flights') }}" class="action-card-link">View Flights</a>
+                </div>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-card-header">Analytics</div>
+                <div class="action-card-body">
+                    <div class="action-card-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h5 class="action-card-title">Business Analytics</h5>
+                    <p class="action-card-text">Track revenue and performance metrics</p>
+                    <a href="{{ url_for('staff_analytics') }}" class="action-card-link">View Analytics</a>
+                </div>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-card-header">Partners</div>
+                <div class="action-card-body">
+                    <div class="action-card-icon"><i class="fas fa-users"></i></div>
+                    <h5 class="action-card-title">Booking Agents</h5>
+                    <p class="action-card-text">Manage booking agent relationships</p>
+                    <a href="{{ url_for('staff_view_booking_agents') }}" class="action-card-link">View Agents</a>
+                </div>
+            </div>
+            
+            <div class="action-card">
+                <div class="action-card-header">Customers</div>
+                <div class="action-card-body">
+                    <div class="action-card-icon"><i class="fas fa-user-friends"></i></div>
+                    <h5 class="action-card-title">Customer Data</h5>
+                    <p class="action-card-text">View frequent flyers and customer info</p>
+                    <a href="{{ url_for('staff_customers') }}" class="action-card-link">View Customers</a>
+                </div>
+            </div>
+            
             {% if 'Admin' in permissions %}
-                <a class="btn btn-success" href="{{ url_for('staff_new_flight') }}">
-                    <i class="fas fa-plus me-1"></i> Create Flight
-                </a>
-                <a class="btn btn-success" href="{{ url_for('staff_add_airplane') }}">
-                    <i class="fas fa-plus me-1"></i> Add Airplane
-                </a>
-                <a class="btn btn-success" href="{{ url_for('staff_add_airport') }}">
-                    <i class="fas fa-plus me-1"></i> Add Airport
-                </a>
-                <a class="btn btn-success" href="{{ url_for('staff_manage_permissions') }}">
-                    <i class="fas fa-user-shield me-1"></i> Manage Permissions
-                </a>
+                <div class="action-card admin">
+                    <div class="action-card-header">Admin</div>
+                    <div class="action-card-body">
+                        <div class="action-card-icon"><i class="fas fa-plus-circle"></i></div>
+                        <h5 class="action-card-title">Create Flight</h5>
+                        <p class="action-card-text">Add new flights to the system</p>
+                        <a href="{{ url_for('staff_new_flight') }}" class="action-card-link">Create Now</a>
+                    </div>
+                </div>
+                
+                <div class="action-card admin">
+                    <div class="action-card-header">Admin</div>
+                    <div class="action-card-body">
+                        <div class="action-card-icon"><i class="fas fa-plane-arrival"></i></div>
+                        <h5 class="action-card-title">Add Airplane</h5>
+                        <p class="action-card-text">Register new aircraft to the fleet</p>
+                        <a href="{{ url_for('staff_add_airplane') }}" class="action-card-link">Add Airplane</a>
+                    </div>
+                </div>
+                
+                <div class="action-card admin">
+                    <div class="action-card-header">Admin</div>
+                    <div class="action-card-body">
+                        <div class="action-card-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <h5 class="action-card-title">Add Airport</h5>
+                        <p class="action-card-text">Register new airports to the system</p>
+                        <a href="{{ url_for('staff_add_airport') }}" class="action-card-link">Add Airport</a>
+                    </div>
+                </div>
+                
+                <div class="action-card admin">
+                    <div class="action-card-header">Admin</div>
+                    <div class="action-card-body">
+                        <div class="action-card-icon"><i class="fas fa-user-shield"></i></div>
+                        <h5 class="action-card-title">Staff Permissions</h5>
+                        <p class="action-card-text">Manage staff access and roles</p>
+                        <a href="{{ url_for('staff_manage_permissions') }}" class="action-card-link">Manage Access</a>
+                    </div>
+                </div>
             {% endif %}
         {% endif %}
     </div>
 
     <!-- Filter Cards -->
     <div class="filters-card">
-        <div class="filters-card-header">
-            <i class="fas fa-filter me-2"></i>Filter Flights
-        </div>
         <div class="filters-card-body">
             {% if user_type == 'Customer' %}
                 {% include "partials/customer_filters.html" %}
@@ -294,9 +544,14 @@
         </div>
     </div>
 
-    <!-- Flights Table -->
-    <div class="flights-header">
-        <h3><i class="fas fa-plane-departure me-2"></i>Upcoming Flights</h3>
+    <!-- Flights Table with Section Header -->
+    <div class="flight-section-header">
+        <i class="fas fa-plane"></i>
+        {% if user_type == 'Booking Agent' %}
+            <h3>Flights Booked by You</h3>
+        {% else %}
+            <h3>Upcoming Flights</h3>
+        {% endif %}
         <span class="flights-count">{{ upcoming_flights|length }}</span>
     </div>
 
@@ -312,6 +567,9 @@
                         <th>To</th>
                         <th>Departure</th>
                         <th>Status</th>
+                        {% if user_type == 'Booking Agent' %}
+                            <th>Customer</th>
+                        {% endif %}
                         {% if user_type == 'Airline Staff' and is_operator %}
                             <th>Action</th>
                         {% endif %}
@@ -326,14 +584,17 @@
                         <td data-label="To">{{ r.Arrival_Airport }}</td>
                         <td data-label="Departure">{{ r.Departure_Date }} <span class="text-muted">{{ r.Departure_Time }}</span></td>
                         <td data-label="Status">
-                            <span class="flight-status 
-                                {% if r.Status_ == 'On-time' %}on-time
-                                {% elif r.Status_ == 'Delayed' %}delayed
-                                {% elif r.Status_ == 'Cancelled' %}cancelled
-                                {% else %}upcoming{% endif %}">
+                            <span class="status-badge upcoming">
                                 {{ r.Status_ }}
                             </span>
                         </td>
+                        {% if user_type == 'Booking Agent' %}
+                            <td data-label="Customer">
+                                <span class="customer-badge">
+                                    <i class="fas fa-user"></i>{{ r.Customer_Email }}
+                                </span>
+                            </td>
+                        {% endif %}
                         {% if user_type == 'Airline Staff' and is_operator %}
                             <td data-label="Action">
                                 <form action="{{ url_for('airline_staff_change_status', airline=r.Airline, flight_id=r.Flight_ID) }}" method="POST" class="d-flex align-items-center">
@@ -354,8 +615,28 @@
         </div>
     {% else %}
         <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>No upcoming flights found.
+            {% if user_type == 'Booking Agent' %}
+                <i class="fas fa-info-circle me-2"></i>You haven't booked any upcoming flights yet.
+            {% else %}
+                <i class="fas fa-info-circle me-2"></i>No upcoming flights found.
+            {% endif %}
         </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Add Font Awesome for icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<!-- Fallback for Font Awesome if the kit doesn't load -->
+<script>
+    window.addEventListener('error', function(e) {
+        if (e.target.tagName === 'SCRIPT' && e.target.src.includes('fontawesome')) {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css';
+            document.head.appendChild(link);
+        }
+    }, true);
+</script>
 {% endblock %}

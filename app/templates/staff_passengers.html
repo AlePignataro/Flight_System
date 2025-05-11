@@ -1,17 +1,609 @@
 {% extends "base.html" %}
 
-{% block title %}Staff · Passengers{% endblock %}
+{% block title %}Staff · Passengers for Flight {{ flight_id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Enhanced color scheme with better contrast for accessibility */
+  :root {
+    --primary-color: #0d47a1;      /* Darker blue for better contrast */
+    --primary-light: #e3f2fd;      /* Very light blue background */
+    --text-dark: #212121;          /* Very dark gray, almost black */
+    --text-medium: #424242;        /* Dark gray for secondary text */
+    --text-light: #ffffff;         /* White text for dark backgrounds */
+    --accent-success: #2e7d32;     /* Darker green */
+    --accent-warning: #e65100;     /* Darker orange */
+    --accent-danger: #c62828;      /* Darker red */
+    --accent-info: #01579b;        /* Darker blue for info */
+    --border-color: #c8d4e3;       /* Subtle blue-gray for borders */
+    --shadow-color: rgba(0, 0, 0, 0.12);
+  }
+  
+  .passenger-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--primary-color);
+    margin-bottom: 8px;
+    background-color: #ffffff;
+  }
+  
+  .passenger-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px var(--shadow-color);
+    background-color: var(--primary-light);
+  }
+  
+  .passenger-stats {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px var(--shadow-color);
+    border: 1px solid var(--border-color);
+  }
+  
+  .stats-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    display: block;
+    text-align: center;
+  }
+  
+  .stats-label {
+    font-size: 0.95rem;
+    color: var(--text-medium);
+    text-align: center;
+    display: block;
+    font-weight: 500; /* Slightly bolder */
+  }
+  
+  .passenger-search {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .passenger-search input {
+    padding-left: 40px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 10px;
+    color: var(--text-medium);
+  }
+  
+  .flight-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 18px 20px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    border: 1px solid var(--border-color);
+  }
+  
+  .flight-badge {
+    font-size: 1.2rem;
+    padding: 8px 16px;
+    margin-right: 15px;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border-radius: 50px;
+    font-weight: 600;
+  }
+  
+  .flight-details {
+    flex-grow: 1;
+  }
+  
+  .flight-details h5 {
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+  
+  .flight-details p.text-muted {
+    color: var(--text-medium) !important;
+    font-weight: 500;
+  }
+  
+  .no-passengers {
+    text-align: center;
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    color: var(--text-medium);
+    box-shadow: 0 2px 6px var(--shadow-color);
+    border: 1px solid var(--border-color);
+  }
+  
+  .no-passengers i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.8;
+    color: var(--text-medium);
+  }
+  
+  .no-passengers h4 {
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+  
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animated-list li {
+    animation: fadeIn 0.5s ease forwards;
+  }
+  
+  .animated-list li:nth-child(1) { animation-delay: 0.05s; }
+  .animated-list li:nth-child(2) { animation-delay: 0.1s; }
+  .animated-list li:nth-child(3) { animation-delay: 0.15s; }
+  .animated-list li:nth-child(4) { animation-delay: 0.2s; }
+  .animated-list li:nth-child(5) { animation-delay: 0.25s; }
+  
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 10px;
+    background-color: #f5f5f5;
+    border: 1px solid #d1d1d1;
+    color: var(--text-dark);
+    font-weight: 500;
+  }
+  
+  .back-button:hover {
+    background-color: #e9e9e9;
+    color: var(--primary-color);
+  }
+  
+  .back-button i {
+    margin-right: 5px;
+    color: inherit;
+  }
+  
+  .page-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .page-header h2 {
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+  
+  /* Flash message styling */
+  .alert {
+    border-left: 4px solid;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  
+  .alert-success {
+    border-left-color: var(--accent-success);
+    background-color: rgba(46, 125, 50, 0.1);
+    color: var(--accent-success);
+  }
+  
+  .alert-danger {
+    border-left-color: var(--accent-danger);
+    background-color: rgba(198, 40, 40, 0.1);
+    color: var(--accent-danger);
+  }
+  
+  /* Improved button styles */
+  .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--text-light);
+    font-weight: 500;
+  }
+  
+  .btn-primary:hover {
+    background-color: #083d8c;
+    border-color: #083d8c;
+  }
+  
+  .btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 500;
+  }
+  
+  .btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+  }
+  
+  .btn-secondary {
+    background-color: #616161;
+    border-color: #616161;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+  
+  /* Card and modal styling */
+  .card {
+    border: 1px solid var(--border-color);
+  }
+  
+  .card-header.bg-primary {
+    background-color: var(--primary-color) !important;
+  }
+  
+  .modal-header {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border-bottom: 0;
+  }
+  
+  .modal-title {
+    font-weight: 600;
+  }
+  
+  .card-subtitle.text-muted {
+    color: var(--text-medium) !important;
+    font-weight: 500;
+  }
+  
+  .alert-info {
+    color: var(--accent-info);
+    background-color: rgba(1, 87, 155, 0.1);
+    border-color: rgba(1, 87, 155, 0.2);
+  }
+  
+  .passenger-email {
+    color: var(--text-dark);
+    font-weight: 500;
+  }
+  
+  /* Status badges */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+  
+  .status-badge i {
+    margin-right: 0.25rem;
+    font-size: 0.7rem;
+  }
+  
+  .status-on-time {
+    background-color: rgba(46, 125, 50, 0.15);
+    color: var(--accent-success);
+    border: 1px solid rgba(46, 125, 50, 0.2);
+  }
+  
+  .status-delayed {
+    background-color: rgba(230, 81, 0, 0.15);
+    color: var(--accent-warning);
+    border: 1px solid rgba(230, 81, 0, 0.2);
+  }
+  
+  .status-cancelled {
+    background-color: rgba(198, 40, 40, 0.15);
+    color: var(--accent-danger);
+    border: 1px solid rgba(198, 40, 40, 0.2);
+  }
+  
+  .status-upcoming {
+    background-color: rgba(1, 87, 155, 0.15);
+    color: var(--accent-info);
+    border: 1px solid rgba(1, 87, 155, 0.2);
+  }
+  
+  .status-arrived {
+    background-color: rgba(0, 137, 123, 0.15);
+    color: #00897b;
+    border: 1px solid rgba(0, 137, 123, 0.2);
+  }
+  
+  /* Action buttons */
+  .action-buttons {
+    display: flex;
+    gap: 0.25rem;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2 class="mb-3">Passengers - flight {{ flight_id }}</h2>
+<div class="container">
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="my-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+              {% if category == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+              {% else %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+              {% endif %}
+              <div><strong>{{ message }}</strong></div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
-{% if passengers %}
-<ul class="list-group">
-  {% for p in passengers %}
-    <li class="list-group-item">{{ p }}</li>
-  {% endfor %}
-</ul>
-{% else %}
-<p>No passengers for this flight.</p>
-{% endif %}
+  <div class="page-header">
+    <a href="{{ url_for('staff_flights') }}" class="back-button btn">
+      <i class="fas fa-arrow-left"></i> Back to Flights
+    </a>
+    <h2 class="mb-0">Passengers for Flight {{ flight_id }}</h2>
+  </div>
+
+  <!-- Flight Information Card -->
+  <div class="flight-info">
+    <div class="flight-badge">
+      {{ flight_id }}
+    </div>
+    <div class="flight-details">
+      <h5 class="mb-1">Flight Details</h5>
+      <p class="mb-0 text-muted">View and manage passenger information</p>
+    </div>
+    <a href="{{ url_for('staff_flights') }}" class="btn btn-outline-primary">
+      <i class="fas fa-plane"></i> Flight Dashboard
+    </a>
+  </div>
+
+  <!-- Passenger Statistics -->
+  <div class="row passenger-stats">
+    <div class="col-md-4">
+      <span class="stats-number">{{ passengers|length }}</span>
+      <span class="stats-label">Total Passengers</span>
+    </div>
+    <div class="col-md-4">
+      <span class="stats-number" id="checkedInCount">0</span>
+      <span class="stats-label">Checked In</span>
+    </div>
+    <div class="col-md-4">
+      <span class="stats-number" id="specialRequestsCount">0</span>
+      <span class="stats-label">Special Requests</span>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="passenger-search">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" class="form-control" id="passengerSearch" placeholder="Search passengers...">
+  </div>
+
+  <!-- Passenger List -->
+  {% if passengers %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Passenger List</h5>
+        <div>
+          <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#exportModal">
+            <i class="fas fa-download"></i> Export
+          </button>
+          <button class="btn btn-sm btn-light ms-2" id="printPassengerList">
+            <i class="fas fa-print"></i> Print
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush animated-list" id="passengerList">
+          {% for p in passengers %}
+            <li class="list-group-item d-flex justify-content-between align-items-center passenger-card">
+              <div>
+                <i class="fas fa-user-circle me-2" style="color: var(--primary-color);"></i>
+                <span class="passenger-email">{{ p }}</span>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-outline-primary passenger-details-btn" data-email="{{ p }}">
+                  <i class="fas fa-eye"></i> Details
+                </button>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% else %}
+    <div class="no-passengers">
+      <i class="fas fa-users"></i>
+      <h4>No passengers for this flight</h4>
+      <p>There are currently no bookings for Flight {{ flight_id }}</p>
+      <a href="{{ url_for('staff_flights') }}" class="btn btn-primary mt-2">
+        <i class="fas fa-arrow-left"></i> Back to Flights
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Export Passenger List</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Select the format for your export:</p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+          <button class="btn btn-outline-primary d-flex flex-column align-items-center p-3" id="exportCSV">
+            <i class="fas fa-file-csv fs-2 mb-2"></i>
+            CSV File
+          </button>
+          <button class="btn btn-outline-primary d-flex flex-column align-items-center p-3" id="exportPDF">
+            <i class="fas fa-file-pdf fs-2 mb-2"></i>
+            PDF File
+          </button>
+          <button class="btn btn-outline-primary d-flex flex-column align-items-center p-3" id="exportXLS">
+            <i class="fas fa-file-excel fs-2 mb-2"></i>
+            Excel File
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Passenger Details Modal -->
+<div class="modal fade" id="passengerDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Passenger Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-3">
+          <i class="fas fa-user-circle" style="font-size: 3rem; color: var(--primary-color);"></i>
+        </div>
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Contact Information</h6>
+            <p class="card-text">
+              <strong>Email:</strong> <span id="passengerDetailEmail"></span><br>
+              <strong>Purchase Date:</strong> Not Available<br>
+              <strong>Ticket ID:</strong> Not Available
+            </p>
+          </div>
+        </div>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          Additional passenger details are available in the customer database.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="contactPassengerBtn">Contact Passenger</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Include Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap components
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modalElement => {
+      const modal = new bootstrap.Modal(modalElement);
+    });
+    
+    // Search functionality
+    const searchInput = document.getElementById('passengerSearch');
+    const passengerList = document.getElementById('passengerList');
+    const passengerItems = passengerList ? passengerList.querySelectorAll('li') : [];
+    
+    if (searchInput) {
+      searchInput.addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        
+        passengerItems.forEach(item => {
+          const passengerText = item.querySelector('.passenger-email').textContent.toLowerCase();
+          if (passengerText.includes(searchValue)) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    }
+    
+    // Passenger details modal
+    const detailButtons = document.querySelectorAll('.passenger-details-btn');
+    const passengerEmailDetail = document.getElementById('passengerDetailEmail');
+    
+    detailButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const email = this.getAttribute('data-email');
+        if (passengerEmailDetail) {
+          passengerEmailDetail.textContent = email;
+        }
+        const detailsModal = new bootstrap.Modal(document.getElementById('passengerDetailsModal'));
+        detailsModal.show();
+      });
+    });
+    
+    // Contact passenger button
+    const contactBtn = document.getElementById('contactPassengerBtn');
+    if (contactBtn) {
+      contactBtn.addEventListener('click', function() {
+        const email = passengerEmailDetail.textContent;
+        window.location.href = `mailto:${email}?subject=Regarding%20Flight%20{{ flight_id }}`;
+      });
+    }
+    
+    // Export buttons functionality
+    const exportCSV = document.getElementById('exportCSV');
+    const exportPDF = document.getElementById('exportPDF');
+    const exportXLS = document.getElementById('exportXLS');
+    
+    if (exportCSV) {
+      exportCSV.addEventListener('click', function() {
+        alert('CSV export functionality would be implemented here');
+        const exportModal = document.getElementById('exportModal');
+        const bsExportModal = bootstrap.Modal.getInstance(exportModal);
+        if (bsExportModal) bsExportModal.hide();
+      });
+    }
+    
+    if (exportPDF) {
+      exportPDF.addEventListener('click', function() {
+        alert('PDF export functionality would be implemented here');
+        const exportModal = document.getElementById('exportModal');
+        const bsExportModal = bootstrap.Modal.getInstance(exportModal);
+        if (bsExportModal) bsExportModal.hide();
+      });
+    }
+    
+    if (exportXLS) {
+      exportXLS.addEventListener('click', function() {
+        alert('Excel export functionality would be implemented here');
+        const exportModal = document.getElementById('exportModal');
+        const bsExportModal = bootstrap.Modal.getInstance(exportModal);
+        if (bsExportModal) bsExportModal.hide();
+      });
+    }
+    
+    // Print functionality
+    const printBtn = document.getElementById('printPassengerList');
+    if (printBtn) {
+      printBtn.addEventListener('click', function() {
+        window.print();
+      });
+    }
+    
+    // Random stats for demo
+    const checkedInCount = document.getElementById('checkedInCount');
+    const specialRequestsCount = document.getElementById('specialRequestsCount');
+    
+    if (checkedInCount && passengerItems.length > 0) {
+      const randomCheckedIn = Math.floor(Math.random() * passengerItems.length);
+      checkedInCount.textContent = randomCheckedIn;
+    }
+    
+    if (specialRequestsCount && passengerItems.length > 0) {
+      const randomSpecialRequests = Math.floor(Math.random() * (passengerItems.length / 2));
+      specialRequestsCount.textContent = randomSpecialRequests;
+    }
+  });
+</script>
 {% endblock %}

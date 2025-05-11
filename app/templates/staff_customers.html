@@ -1,44 +1,769 @@
 {% extends "base.html" %}
-{% block title %}Frequent customers{% endblock %}
-{% block content %}
-<h2 class="mb-4">Customer insights</h2>
+{% block title %}Customer Insights - {{ airline }}{% endblock %}
 
-<!-- most-frequent customer card -->
-<div class="card mb-4">
-  <div class="card-body">
-    <h5 class="card-title">Most-frequent customer (last 12 mo.)</h5>
-    {% if frequent %}
-      <p class="mb-0">{{ frequent.Customer_Email }} — {{ frequent.flights }} flights</p>
-    {% else %}
-      <p class="text-muted mb-0">No data.</p>
+{% block extra_css %}
+<style>
+    /* ───────── PAGE LAYOUT ───────── */
+    .analytics-header {
+        margin-bottom: 2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+    
+    .analytics-header h2 {
+        font-weight: 600;
+        margin: 0;
+        color: #333;
+    }
+    
+    /* ───────── CARD STYLES ───────── */
+    .insight-card {
+        border: none;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        height: 100%;
+        margin-bottom: 1.5rem;
+    }
+    
+    .insight-card .card-header {
+        background-color: transparent;
+        font-weight: 600;
+        color: #0d6efd;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .insight-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* ───────── TOP CUSTOMERS CARD ───────── */
+    .customer-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s;
+    }
+    
+    .customer-card:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .customer-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 24px;
+        background-color: #0d6efd;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+    
+    .customer-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .customer-email {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .customer-metrics {
+        font-size: 0.9rem;
+    }
+    
+    .flights-badge {
+        background-color: #e6f4ff;
+        color: #0d6efd;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .spent-badge {
+        background-color: #e6fff4;
+        color: #198754;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    /* ───────── SEARCH BOX ───────── */
+    .search-card {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-card h5 {
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .search-input {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+    }
+    
+    .search-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    /* ───────── CUSTOMER PROFILE ───────── */
+    .profile-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+    
+    .profile-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 32px;
+        background-color: #0d6efd;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.5rem;
+        margin-right: 1.25rem;
+    }
+    
+    .profile-name {
+        font-weight: 600;
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .profile-email {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+    
+    .profile-detail {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-label {
+        font-weight: 500;
+        color: #6c757d;
+        width: 130px;
+        display: inline-block;
+    }
+    
+    .stat-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    /* ───────── CHART CONTAINERS ───────── */
+    .chart-container {
+        height: 300px;
+        position: relative;
+        margin-top: 1rem;
+    }
+    
+    /* ───────── FLIGHT TABLE ───────── */
+    .flight-table-container {
+        margin-top: 1rem;
+    }
+    
+    .flight-table {
+        font-size: 0.9rem;
+    }
+    
+    .flight-table th {
+        font-weight: 600;
+        background-color: #f8f9fa;
+        padding: 0.75rem 1rem;
+    }
+    
+    .flight-table td {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+    }
+    
+    .flight-status {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+    
+    .status-on-time {
+        background-color: #e6fff4;
+        color: #198754;
+    }
+    
+    .status-delayed {
+        background-color: #fff3e6;
+        color: #fd7e14;
+    }
+    
+    .status-cancelled {
+        background-color: #ffe6e6;
+        color: #dc3545;
+    }
+    
+    /* ───────── RESPONSIVE ADJUSTMENTS ───────── */
+    @media (max-width: 992px) {
+        .chart-container {
+            height: 250px;
+        }
+    }
+    
+    .no-data-message {
+        padding: 2rem;
+        text-align: center;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mb-5">
+    <!-- Header -->
+    <div class="analytics-header">
+        <h2>Customer Insights</h2>
+        <p class="text-muted mt-2 mb-0">Analyze customer behavior and flight patterns for {{ airline }}</p>
+    </div>
+    
+    <!-- Overview Row -->
+    <div class="row mb-4">
+        <!-- Top Customers Card -->
+        <div class="col-lg-7 mb-4">
+            <div class="insight-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Top Customers (Last 12 Months)</h5>
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-body">
+                    {% if top_customers %}
+                        {% for customer in top_customers %}
+                        <div class="customer-card d-flex align-items-center">
+                            <div class="customer-avatar me-3">
+                                {{ customer.First_Name[:1] }}{{ customer.Last_Name[:1] }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <div class="customer-name">{{ customer.First_Name }} {{ customer.Last_Name }}</div>
+                                        <div class="customer-email">{{ customer.Customer_Email }}</div>
+                                    </div>
+                                    <div class="d-flex">
+                                        <form method="post" class="ms-2">
+                                            <input type="hidden" name="customer_email" value="{{ customer.Customer_Email }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                View Details
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="customer-metrics d-flex gap-2">
+                                    <span class="flights-badge">
+                                        <i class="fas fa-plane-departure me-1"></i> {{ customer.flights }} flights
+                                    </span>
+                                    <span class="spent-badge">
+                                        <i class="fas fa-dollar-sign me-1"></i> ${{ "%.2f"|format(customer.total_spent) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-data-message">
+                            <i class="far fa-user-circle fa-3x mb-3"></i>
+                            <h5>No customer data available</h5>
+                            <p>There are no flights booked by customers in the last 12 months</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer Categories Card -->
+        <div class="col-lg-5 mb-4">
+            <div class="insight-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Customer Categories</h5>
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="card-body">
+                    {% if revenue_by_category %}
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                        <div class="table-responsive mt-3">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th class="text-end">Customers</th>
+                                        <th class="text-end">Revenue</th>
+                                        <th class="text-end">Avg. Ticket</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for category in revenue_by_category %}
+                                    <tr>
+                                        <td>{{ category.category }}</td>
+                                        <td class="text-end">{{ category.customer_count }}</td>
+                                        <td class="text-end">${{ "%.2f"|format(category.total_revenue) }}</td>
+                                        <td class="text-end">${{ "%.2f"|format(category.avg_revenue_per_ticket) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="no-data-message">
+                            <i class="far fa-chart-pie fa-3x mb-3"></i>
+                            <h5>No category data available</h5>
+                            <p>There are no customer categories to display</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Monthly Activity -->
+        <div class="col-lg-6 mb-4">
+            <div class="insight-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Monthly Customer Activity</h5>
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="card-body">
+                    {% if monthly_activity %}
+                        <div class="chart-container">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="no-data-message">
+                            <i class="far fa-chart-line fa-3x mb-3"></i>
+                            <h5>No activity data available</h5>
+                            <p>There is no monthly customer activity to display</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Popular Destinations -->
+        <div class="col-lg-6 mb-4">
+            <div class="insight-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Popular Destinations</h5>
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="card-body">
+                    {% if destinations_data %}
+                        <div class="chart-container">
+                            <canvas id="destinationsChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="no-data-message">
+                            <i class="far fa-map fa-3x mb-3"></i>
+                            <h5>No destination data available</h5>
+                            <p>There are no popular destinations to display</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Customer Lookup Form -->
+    <div class="search-card">
+        <h5>Search for Customer</h5>
+        <form method="post" class="row align-items-center">
+            <div class="col-md-8 col-lg-9 mb-3 mb-md-0">
+                <input type="text" name="customer_email" class="form-control search-input" 
+                       placeholder="Enter customer email address" value="{{ email }}">
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <button type="submit" class="btn btn-primary search-button w-100">
+                    <i class="fas fa-search me-2"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Customer Profile (if a customer was looked up) -->
+    {% if customer_info %}
+    <div class="insight-card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Customer Profile</h5>
+            <i class="fas fa-user"></i>
+        </div>
+        <div class="card-body">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    {{ customer_info.First_Name[:1] }}{{ customer_info.Last_Name[:1] }}
+                </div>
+                <div>
+                    <div class="profile-name">{{ customer_info.First_Name }} {{ customer_info.Last_Name }}</div>
+                    <div class="profile-email">{{ customer_info.Email }}</div>
+                </div>
+            </div>
+            
+            <!-- Profile Details and Stats -->
+            <div class="row">
+                <!-- Customer Details -->
+                <div class="col-lg-6">
+                    <h6 class="mb-3 fw-bold">Personal Information</h6>
+                    
+                    {% if customer_info.Phone_Number %}
+                    <div class="profile-detail">
+                        <span class="profile-label">Phone:</span> {{ customer_info.Phone_Number }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if customer_info.Building_Name %}
+                    <div class="profile-detail">
+                        <span class="profile-label">Address:</span> {{ customer_info.Building_Name }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if customer_info.City and customer_info.State %}
+                    <div class="profile-detail">
+                        <span class="profile-label">Location:</span> {{ customer_info.City }}, {{ customer_info.State }} {{ customer_info.Zip_Code }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if customer_info.Passport_Country %}
+                    <div class="profile-detail">
+                        <span class="profile-label">Passport Country:</span> {{ customer_info.Passport_Country }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if customer_info.age %}
+                    <div class="profile-detail">
+                        <span class="profile-label">Age:</span> {{ customer_info.age }} years
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Flight Statistics -->
+                <div class="col-lg-6">
+                    <h6 class="mb-3 fw-bold">Flight Statistics</h6>
+                    
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <div class="stat-card">
+                                <div class="stat-value">{{ flight_stats.total_flights }}</div>
+                                <div class="stat-label">Total Flights</div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="stat-card">
+                                <div class="stat-value">${{ "%.2f"|format(flight_stats.total_spent) }}</div>
+                                <div class="stat-label">Total Spent</div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="stat-card">
+                                <div class="stat-value">${{ "%.2f"|format(flight_stats.avg_ticket_price) }}</div>
+                                <div class="stat-label">Avg Ticket Price</div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="stat-card">
+                                <div class="stat-value">{{ flight_stats.unique_destinations|default('N/A') }}</div>
+                                <div class="stat-label">Destinations</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Booking Method Breakdown -->
+                    <div class="chart-container mt-3" style="height: 200px;">
+                        <canvas id="bookingMethodChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
-  </div>
+    
+    <!-- Flight History Table -->
+    {% if flights %}
+    <div class="insight-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Flight History for {{ email }}</h5>
+            <i class="fas fa-history"></i>
+        </div>
+        <div class="card-body">
+            <div class="flight-table-container">
+                <table class="table flight-table">
+                    <thead>
+                        <tr>
+                            <th>Flight #</th>
+                            <th>Departure</th>
+                            <th>Arrival</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th class="text-end">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for flight in flights %}
+                        <tr>
+                            <td>
+                                <strong>{{ flight.Airline }}-{{ flight.Flight_ID }}</strong>
+                            </td>
+                            <td>{{ flight.Departure_Airport }}</td>
+                            <td>{{ flight.Arrival_Airport }}</td>
+                            <td>
+                                {{ flight.Departure_Date }} 
+                                <small class="text-muted">{{ flight.Departure_Time }}</small>
+                            </td>
+                            <td>
+                                <span class="flight-status {% if flight.Status_ == 'On-time' %}status-on-time{% elif flight.Status_ == 'Delayed' %}status-delayed{% elif flight.Status_ == 'Cancelled' %}status-cancelled{% endif %}">
+                                    {{ flight.Status_ }}
+                                </span>
+                            </td>
+                            <td class="text-end">${{ "%.2f"|format(flight.Price) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% elif email %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> No flights found for customer: <strong>{{ email }}</strong>
+    </div>
+    {% endif %}
 </div>
 
-<!-- lookup form -->
-<form method="post" class="row g-3 mb-3">
-  <div class="col-auto">
-    <input name="customer_email" class="form-control" placeholder="customer@email"
-           value="{{ email }}">
-  </div>
-  <div class="col-auto">
-    <button class="btn btn-primary">Show flights</button>
-  </div>
-</form>
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-{% if flights %}
-  <h5>Flights for {{ email }}</h5>
-  <table class="table table-sm">
-    <thead>
-      <tr>{% for h in flights[0].keys() %}<th>{{ h }}</th>{% endfor %}</tr>
-    </thead>
-    <tbody>
-      {% for f in flights %}
-        <tr>{% for v in f.values() %}<td>{{ v }}</td>{% endfor %}</tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% elif email %}
-  <p class="text-muted">No flights found for that customer.</p>
-{% endif %}
+<!-- Charts.js for visualizations -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Chart color palette
+    const CHART_COLORS = [
+        "#0d6efd", // Blue
+        "#fd7e14", // Orange
+        "#20c997", // Teal
+        "#6610f2", // Purple
+        "#198754", // Green
+        "#ffc107", // Yellow
+        "#dc3545", // Red
+        "#6c757d"  // Gray
+    ];
+    
+    // Customer Categories Chart
+    {% if revenue_by_category %}
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for category in revenue_by_category %}'{{ category.category }}',{% endfor %}],
+            datasets: [{
+                data: [{% for category in revenue_by_category %}{{ category.total_revenue }},{% endfor %}],
+                backgroundColor: CHART_COLORS.slice(0, {{ revenue_by_category|length }}),
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.raw;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = Math.round((value / total) * 100);
+                            return `$${value.toFixed(2)} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+    
+    // Monthly Activity Chart
+    {% if monthly_activity %}
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    new Chart(activityCtx, {
+        type: 'line',
+        data: {
+            labels: [{% for month in monthly_activity %}'{{ month.month }}',{% endfor %}],
+            datasets: [
+                {
+                    label: 'Unique Customers',
+                    data: [{% for month in monthly_activity %}{{ month.unique_customers }},{% endfor %}],
+                    borderColor: CHART_COLORS[0],
+                    backgroundColor: 'transparent',
+                    tension: 0.3,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Revenue ($)',
+                    data: [{% for month in monthly_activity %}{{ month.revenue }},{% endfor %}],
+                    borderColor: CHART_COLORS[4],
+                    backgroundColor: 'transparent',
+                    tension: 0.3,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Customers'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Revenue ($)'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+    
+    // Popular Destinations Chart
+    {% if destinations_data %}
+    const destinationsCtx = document.getElementById('destinationsChart').getContext('2d');
+    new Chart(destinationsCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for dest in destinations_data %}'{{ dest.destination }}',{% endfor %}],
+            datasets: [{
+                label: 'Flight Count',
+                data: [{% for dest in destinations_data %}{{ dest.total_flights }},{% endfor %}],
+                backgroundColor: CHART_COLORS[2],
+                borderRadius: 6,
+                maxBarThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+    
+    // Booking Method Breakdown Chart (for individual customer)
+    {% if flight_stats and flight_stats.direct_bookings is defined and flight_stats.agent_bookings is defined %}
+    const bookingMethodCtx = document.getElementById('bookingMethodChart').getContext('2d');
+    new Chart(bookingMethodCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Direct Bookings', 'Agent Bookings'],
+            datasets: [{
+                data: [{{ flight_stats.direct_bookings }}, {{ flight_stats.agent_bookings }}],
+                backgroundColor: [CHART_COLORS[0], CHART_COLORS[1]],
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    display: true,
+                    text: 'Booking Methods',
+                    font: {
+                        size: 14
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
 {% endblock %}

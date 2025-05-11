@@ -1,42 +1,149 @@
 {% extends "base.html" %}
-{% block title %}Past Flights{% endblock %}
+{% block title %}Past Flights – Flight IQ{% endblock %}
 
 {% block extra_css %}
 <style>
-  .charts-flex{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin:2rem 0}
-  .chart-box {width:320px;max-width:400px} #pieChart{max-height:400px}
+  /* Modern card styling */
+  .filter-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+  
+  /* Chart container styling */
+  .charts-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+  
+  .chart-box {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    width: 380px;
+    max-width: 100%;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .chart-box {
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  /* Badge for flight count */
+  .flight-count {
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 50px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-left: 0.5rem;
+  }
+  
+  /* Improved form elements */
+  .date-input {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .filter-button {
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<h3>Your past flights</h3>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Your Past Flights</h2>
+  {% if rows %}
+    <span class="flight-count">{{ rows|length }} flights</span>
+  {% endif %}
+</div>
 
-<form class="row row-cols-lg-auto g-3 align-items-end mb-4" method="POST">
-  <div class="col-12"><input class="form-control" type="date" name="start" value="{{ start }}"></div>
-  <div class="col-12"><input class="form-control" type="date" name="end"   value="{{ end }}"></div>
-  <div class="col-12">
-    <label class="form-label">Airport</label>
-    <select name="city" class="form-select">
-      <option value="" {% if not city %}selected{% endif %}>Any</option>
-      {% for ap in dep_airports + arr_airports %}
-        <option value="{{ ap }}" {% if ap == city %}selected{% endif %}>{{ ap }}</option>
-      {% endfor %} 
-    </select>
+<!-- Filter Card -->
+<div class="card filter-card p-4">
+  <h5 class="mb-3">Filter Results</h5>
+  <form class="row g-3" method="POST">
+    <div class="col-md-4">
+      <label class="form-label fw-semibold">From Date</label>
+      <input 
+        class="form-control date-input" 
+        type="date" 
+        name="start" 
+        value="{{ start }}"
+      >
+    </div>
+    
+    <div class="col-md-4">
+      <label class="form-label fw-semibold">To Date</label>
+      <input 
+        class="form-control date-input" 
+        type="date" 
+        name="end" 
+        value="{{ end }}"
+      >
+    </div>
+    
+    <div class="col-md-4">
+      <label class="form-label fw-semibold">Airport</label>
+      <select name="city" class="form-select">
+        <option value="" {% if not city %}selected{% endif %}>Any Airport</option>
+        {% for ap in dep_airports + arr_airports %}
+          <option value="{{ ap }}" {% if ap == city %}selected{% endif %}>{{ ap }}</option>
+        {% endfor %} 
+      </select>
+    </div>
+    
+    <div class="col-12 d-flex justify-content-end">
+      <button class="btn btn-primary filter-button">
+        <i class="bi bi-funnel-fill me-1"></i>Apply Filters
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Charts -->
+<div class="charts-container">
+  <div class="chart-box">
+    <canvas id="pieChart"></canvas>
   </div>
-  <div class="col-12"><button class="btn btn-primary">Filter</button></div>
-</form>
+  <div class="chart-box">
+    <canvas id="barChart"></canvas>
+  </div>
+</div>
 
+<!-- Flights Table -->
 {% if rows %}
-  {% set rows = rows %}
-  {% include "partials/flight_table.html" %}
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      {% set rows = rows %}
+      {% include "partials/flight_table.html" %}
+    </div>
+  </div>
 {% else %}
-  <p>No flights match your filters.</p>
+  <div class="alert alert-info text-center my-4 py-4">
+    <i class="bi bi-info-circle me-2"></i>
+    No flights match your filters. Try adjusting your search criteria.
+  </div>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
+<!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+<!-- Data for Charts -->
 <span id="chart-data" hidden
       data-pie-labels='{{ pie_labels|tojson|safe }}'
       data-pie-values='{{ pie_values|tojson|safe }}'
@@ -50,24 +157,54 @@
   const barL = JSON.parse(d.dataset.barLabels);
   const barV = JSON.parse(d.dataset.barValues);
 
+  // Color palette for charts
+  const colors = [
+    'rgba(13, 110, 253, 0.75)',   // Primary blue
+    'rgba(25, 135, 84, 0.75)',    // Success green
+    'rgba(220, 53, 69, 0.75)',    // Danger red
+    'rgba(255, 193, 7, 0.75)',    // Warning yellow
+    'rgba(13, 202, 240, 0.75)',   // Info cyan
+    'rgba(111, 66, 193, 0.75)',   // Purple
+    'rgba(253, 126, 20, 0.75)',   // Orange
+    'rgba(108, 117, 125, 0.75)'   // Secondary gray
+  ];
+
   // Pie chart: spend by airline
   new Chart(document.getElementById('pieChart'), {
     type: 'pie',
     data: {
       labels: pieL,
       datasets: [{
-        data: pieV
+        data: pieV,
+        backgroundColor: colors,
+        borderWidth: 1,
+        borderColor: '#fff'
       }]
     },
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         title: { 
           display: true,
           text: 'Spending by Airline', 
-          font: { size: 18 }
+          font: { size: 18, weight: 'bold' },
+          padding: { bottom: 15 }
         },
         legend: {
-          position: 'bottom'
+          position: 'bottom',
+          labels: {
+            padding: 15,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: $${context.raw.toFixed(2)}`;
+            }
+          }
         }
       }
     }
@@ -80,20 +217,51 @@
       labels: barL,
       datasets: [{
         label: 'Spending ($)',
-        data: barV
+        data: barV,
+        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+        borderColor: 'rgba(13, 110, 253, 1)',
+        borderWidth: 1,
+        borderRadius: 4
       }]
     },
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         title: { 
           display: true,
           text: 'Spending per Month',
-          font: { size: 18 }
+          font: { size: 18, weight: 'bold' },
+          padding: { bottom: 15 }
+        },
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `$${context.raw.toFixed(2)}`;
+            }
+          }
         }
       },
       scales: {
         y: {
-          beginAtZero: true
+          beginAtZero: true,
+          grid: {
+            display: true,
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            callback: function(value) {
+              return '$' + value;
+            }
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
         }
       }
     }

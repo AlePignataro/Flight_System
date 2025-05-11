@@ -1,8 +1,4 @@
 {% if rows %}
-  {# Figure out which optional columns exist in this dataset #}
-  {% set has_customer = 'Customer_Email' in rows[0] %}
-  {% set has_seats    = 'Seats_Left'     in rows[0] %}
-
   <div class="table-responsive">
     <table class="table table-striped">
       <thead>
@@ -14,8 +10,9 @@
           <th>Arrival&nbsp;Airport</th>
           <th>Arrival&nbsp;Time</th>
           <th>Status</th>
-          {% if has_seats    %}<th>Seats&nbsp;left</th>{% endif %}
+          {% if has_seats %}<th>Seats&nbsp;left</th>{% endif %}
           {% if has_customer %}<th>Customer&nbsp;Email</th>{% endif %}
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -27,9 +24,33 @@
           <td>{{ r.Departure_Time }}</td>
           <td>{{ r.Arrival_Airport }}</td>
           <td>{{ r.Arrival_Time }}</td>
-          <td>{{ r.Status_ }}</td>
-          {% if has_seats    %}<td>{{ r.Seats_Left|default('—') }}</td>{% endif %}
+          <td data-label="Status">
+            <span class="status-badge 
+              {% if r.Status_ == 'On-time' %}status-on-time{% endif %}
+              {% if r.Status_ == 'Delayed' %}status-delayed{% endif %}
+              {% if r.Status_ == 'Cancelled' %}status-cancelled{% endif %}
+              {% if r.Status_ == 'Upcoming' %}status-upcoming{% endif %}
+              {% if r.Status_ == 'Arrived' %}status-arrived{% endif %}
+            ">
+              {% if r.Status_ == 'On-time' %}<i class="fas fa-check-circle"></i>{% endif %}
+              {% if r.Status_ == 'Delayed' %}<i class="fas fa-clock"></i>{% endif %}
+              {% if r.Status_ == 'Cancelled' %}<i class="fas fa-times-circle"></i>{% endif %}
+              {% if r.Status_ == 'Upcoming' %}<i class="fas fa-calendar-alt"></i>{% endif %}
+              {% if r.Status_ == 'Arrived' %}<i class="fas fa-plane-arrival"></i>{% endif %}
+              {{ r.Status_ }}
+            </span>
+          </td>
+          {% if has_seats %}<td>{{ r.Seats_Left|default('—') }}</td>{% endif %}
           {% if has_customer %}<td>{{ r.Customer_Email }}</td>{% endif %}
+          <td>
+            <div class="action-buttons">
+              {% if session.get('role') == 'staff' %}
+                <a href="{{ url_for('staff_passengers', flight_id=r.Flight_ID) }}" class="btn btn-sm btn-outline-primary me-1" title="View Passengers">
+                  <i class="fas fa-users"></i>
+                </a>
+              {% endif %}
+            </div>
+          </td>
         </tr>
       {% endfor %}
       </tbody>

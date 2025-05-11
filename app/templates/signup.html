@@ -324,13 +324,13 @@
             </div>
           </div>
           
-          <!-- Staff Fields -->
+          <!-- Staff Fields - FIXED SECTION -->
           <div id="staff-fields">
             <h3 class="form-section-title">Staff Information</h3>
             
             <div class="form-row">
               <div class="auth-form-group">
-                <label for="staff_first_name">First Name</label>
+                <label for="staff_first_name">First Name <span class="text-danger">*</span></label>
                 <input type="text" id="staff_first_name" name="first_name" class="form-control" required>
                 <div class="invalid-feedback">First name is required.</div>
               </div>
@@ -341,20 +341,20 @@
               </div>
               
               <div class="auth-form-group">
-                <label for="staff_last_name">Last Name</label>
+                <label for="staff_last_name">Last Name <span class="text-danger">*</span></label>
                 <input type="text" id="staff_last_name" name="last_name" class="form-control" required>
                 <div class="invalid-feedback">Last name is required.</div>
               </div>
             </div>
             
             <div class="auth-form-group">
-              <label for="staff_dob">Date of Birth</label>
+              <label for="staff_dob">Date of Birth <span class="text-danger">*</span></label>
               <input type="date" id="staff_dob" name="dob" class="form-control" required>
               <div class="invalid-feedback">Date of birth is required.</div>
             </div>
             
             <div class="auth-form-group">
-              <label for="airline_name">Airline</label>
+              <label for="airline_name">Airline <span class="text-danger">*</span></label>
               <input type="text" id="airline_name" name="airline_name" class="form-control" required>
               <div class="invalid-feedback">Airline name is required.</div>
             </div>
@@ -562,7 +562,7 @@
     return isValid;
   }
   
-  // Submit form validation
+  // Submit form validation - FIXED VERSION
   document.getElementById('signup-form').addEventListener('submit', function(e) {
     const selectedRole = document.querySelector('input[name="role"]:checked').value;
     let isValid = true;
@@ -589,18 +589,53 @@
     }
     
     if (selectedRole === 'staff') {
-      staffRequiredFields.forEach(field => {
-        if (!field.value.trim()) {
-          field.classList.add('is-invalid');
-          isValid = false;
-        } else {
-          field.classList.remove('is-invalid');
-        }
-      });
+      // Explicitly check each staff field individually
+      const staffFirstName = document.getElementById('staff_first_name');
+      const staffLastName = document.getElementById('staff_last_name');
+      const airlineName = document.getElementById('airline_name');
+      const staffDob = document.getElementById('staff_dob');
+      
+      // Validate first name
+      if (!staffFirstName.value.trim()) {
+        staffFirstName.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        staffFirstName.classList.remove('is-invalid');
+      }
+      
+      // Validate last name
+      if (!staffLastName.value.trim()) {
+        staffLastName.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        staffLastName.classList.remove('is-invalid');
+      }
+      
+      // Validate airline name
+      if (!airlineName.value.trim()) {
+        airlineName.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        airlineName.classList.remove('is-invalid');
+      }
+      
+      // Check if form is valid before submission
+      console.log('Staff form validation:');
+      console.log('First name:', staffFirstName.value);
+      console.log('Last name:', staffLastName.value);
+      console.log('Airline:', airlineName.value);
+      console.log('DoB:', staffDob.value);
     }
     
     if (!isValid) {
       e.preventDefault();
+      // Focus on the first invalid field
+      const firstInvalid = document.querySelector('.is-invalid');
+      if (firstInvalid) {
+        firstInvalid.focus();
+        // Scroll to the invalid field
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
   });
   

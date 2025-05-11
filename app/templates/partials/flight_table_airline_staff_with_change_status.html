@@ -10,33 +10,81 @@
           <th>Arrival&nbsp;Airport</th>
           <th>Arrival&nbsp;Time</th>
           <th>Status</th>
-          <th>Seats Left</th>
-          <th>Change Status</th>  <!-- Add the "Change Status" button column -->
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
       {% for r in rows %}
         <tr>
-            <td>{{ r.Flight_ID }}</td>
-            <td>{{ r.Airline }}</td>
-            <td>{{ r.Departure_Airport }}</td>
-            <td>{{ r.Departure_Time }}</td>
-            <td>{{ r.Arrival_Airport }}</td>
-            <td>{{ r.Arrival_Time }}</td>
-            <td>{{ r.Status_ }}</td>
-            <td>{{ r.Seats_Left|default('—') }}</td>
-            <td>
-            <form action="{{ url_for('airline_staff_change_status', airline=r.Airline, flight_id=r.Flight_ID) }}" method="POST">
-                <select class="form-select" name="status">
-                <option value="Upcoming" {% if r.Status_ == 'Upcoming' %}selected{% endif %}>Upcoming</option>
-                <option value="Delayed" {% if r.Status_ == 'Delayed' %}selected{% endif %}>Delayed</option>
-                <option value="Cancelled" {% if r.Status_ == 'Cancelled' %}selected{% endif %}>Cancelled</option>
-                </select>
-                <button class="btn btn-warning btn-sm mt-2">Change Status</button>
-            </form>
-            </td>
+          <td>{{ r.Airline }}</td>
+          <td>{{ r.Flight_ID }}</td>
+          <td>{{ r.Departure_Airport }}</td>
+          <td>{{ r.Departure_Time }}</td>
+          <td>{{ r.Arrival_Airport }}</td>
+          <td>{{ r.Arrival_Time }}</td>
+          <td data-label="Status">
+            <span class="status-badge 
+              {% if r.Status_ == 'On-time' %}status-on-time{% endif %}
+              {% if r.Status_ == 'Delayed' %}status-delayed{% endif %}
+              {% if r.Status_ == 'Cancelled' %}status-cancelled{% endif %}
+              {% if r.Status_ == 'Upcoming' %}status-upcoming{% endif %}
+              {% if r.Status_ == 'Arrived' %}status-arrived{% endif %}
+            ">
+              {% if r.Status_ == 'On-time' %}<i class="fas fa-check-circle"></i>{% endif %}
+              {% if r.Status_ == 'Delayed' %}<i class="fas fa-clock"></i>{% endif %}
+              {% if r.Status_ == 'Cancelled' %}<i class="fas fa-times-circle"></i>{% endif %}
+              {% if r.Status_ == 'Upcoming' %}<i class="fas fa-calendar-alt"></i>{% endif %}
+              {% if r.Status_ == 'Arrived' %}<i class="fas fa-plane-arrival"></i>{% endif %}
+              {{ r.Status_ }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <a href="{{ url_for('staff_passengers', flight_id=r.Flight_ID) }}" class="btn btn-sm btn-outline-primary me-1" title="View Passengers">
+                <i class="fas fa-users"></i>
+              </a>
+              
+              <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#changeStatusModal-{{ r.Flight_ID }}" title="Change Status">
+                <i class="fas fa-exchange-alt"></i>
+              </button>
+              
+              <!-- Change Status Modal -->
+              <div class="modal fade" id="changeStatusModal-{{ r.Flight_ID }}" tabindex="-1" aria-labelledby="changeStatusModalLabel-{{ r.Flight_ID }}" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                      <h5 class="modal-title" id="changeStatusModalLabel-{{ r.Flight_ID }}">Change Status for Flight {{ r.Flight_ID }}</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ url_for('airline_staff_change_status', airline=r.Airline, flight_id=r.Flight_ID) }}" method="POST">
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label for="status-{{ r.Flight_ID }}" class="form-label">New Status</label>
+                          <select class="form-select" id="status-{{ r.Flight_ID }}" name="status">
+                            <option value="Upcoming" {% if r.Status_ == 'Upcoming' %}selected{% endif %}>Upcoming</option>
+                            <option value="Delayed" {% if r.Status_ == 'Delayed' %}selected{% endif %}>Delayed</option>
+                            <option value="Cancelled" {% if r.Status_ == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            <option value="On-time" {% if r.Status_ == 'On-time' %}selected{% endif %}>On-time</option>
+                            <option value="Arrived" {% if r.Status_ == 'Arrived' %}selected{% endif %}>Arrived</option>
+                          </select>
+                        </div>
+                        <div class="alert alert-info">
+                          <i class="fas fa-info-circle me-2"></i>
+                          Changing the status will notify all affected passengers.
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
         </tr>
-        {% endfor %}
+      {% endfor %}
       </tbody>
     </table>
   </div>

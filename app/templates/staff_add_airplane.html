@@ -1,23 +1,388 @@
 {% extends "base.html" %}
 
-{% block title %}Staff · Add airplane{% endblock %}
+{% block title %}Add Airplane - Fleet Management{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Custom styling for the add airplane page */
+  .airplane-form-container {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+  }
+  
+  .airplane-form-container:hover {
+    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.15);
+  }
+  
+  .form-header {
+    border-bottom: 2px solid #0d6efd;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .form-header h2 {
+    font-weight: 600;
+    color: #0d6efd;
+  }
+  
+  .form-header p {
+    color: #6c757d;
+    margin-bottom: 0;
+  }
+  
+  .form-floating {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-floating label {
+    color: #495057;
+  }
+  
+  .form-floating input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+  
+  .submit-btn-container {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .submit-btn {
+    background: linear-gradient(to right, #0d6efd, #0b5ed7);
+    border: none;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .submit-btn:hover {
+    background: linear-gradient(to right, #0b5ed7, #094bac);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+  }
+  
+  .back-btn {
+    background-color: #6c757d;
+    border: none;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .back-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+  }
+
+  .airplane-icon {
+    color: #0d6efd;
+    margin-right: 0.5rem;
+  }
+  
+  .airplanes-table {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  .airplanes-table thead {
+    background-color: #0d6efd;
+    color: white;
+  }
+  
+  .airplanes-table th, .airplanes-table td {
+    padding: 1rem;
+  }
+  
+  .airplanes-table tbody tr {
+    transition: all 0.2s ease;
+  }
+  
+  .airplanes-table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+  }
+  
+  .info-card {
+    background-color: #e9f2ff;
+    border-left: 4px solid #0d6efd;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 4px;
+  }
+  
+  .info-card h5 {
+    color: #0d6efd;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+  
+  .info-card p {
+    margin-bottom: 0;
+    color: #495057;
+  }
+  
+  /* Animation for form submission */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 20px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  
+  .animate-in {
+    animation: fadeInUp 0.5s ease forwards;
+  }
+  
+  /* Custom flash message styling */
+  .flash-message {
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    animation: fadeInUp 0.5s ease forwards;
+  }
+  
+  .flash-message.success {
+    background-color: #d4edda;
+    border-left: 4px solid #28a745;
+    color: #155724;
+  }
+  
+  .flash-message.danger {
+    background-color: #f8d7da;
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+  }
+  
+  .flash-message.info {
+    background-color: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+    color: #0c5460;
+  }
+  
+  .flash-message .close-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  
+  .flash-message .close-btn:hover {
+    opacity: 1;
+  }
+  
+  .form-control {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+  
+  /* Input animations */
+  .input-animate {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  
+  .input-animate label {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    transition: all 0.3s;
+    pointer-events: none;
+    color: #6c757d;
+  }
+  
+  .input-animate input {
+    height: 3.5rem;
+    padding: 1rem;
+  }
+  
+  .input-animate input:focus ~ label,
+  .input-animate input:not(:placeholder-shown) ~ label {
+    top: -0.5rem;
+    left: 0.75rem;
+    font-size: 0.75rem;
+    padding: 0 0.25rem;
+    background-color: white;
+    color: #0d6efd;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Add airplane</h2>
+<div class="container py-4 animate-in">
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">
+          <strong>{{ 'Success!' if category == 'success' else 'Error!' }}</strong> {{ message }}
+          <button type="button" class="close-btn">&times;</button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 
-<form method="post" class="row g-3">
-  <div class="col-md-6">
-    <label class="form-label">Plane ID</label>
-    <input name="plane_id" class="form-control" required>
+  <!-- Main Content -->
+  <div class="airplane-form-container">
+    <div class="form-header">
+      <h2 class="mb-2">
+        <i class="fas fa-plane airplane-icon"></i>Add New Airplane
+      </h2>
+      <p>Register a new airplane to your airline's fleet</p>
+    </div>
+    
+    <div class="info-card mb-4">
+      <h5><i class="fas fa-info-circle me-2"></i>Important Information</h5>
+      <p>Each airplane must have a unique ID within your airline fleet. The number of seats determines the passenger capacity.</p>
+    </div>
+    
+    <form method="post" class="row g-3" id="airplane-form">
+      <div class="col-md-6">
+        <div class="input-animate">
+          <input type="text" name="plane_id" class="form-control" id="plane_id" required placeholder=" ">
+          <label for="plane_id">Airplane ID</label>
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="input-animate">
+          <input type="number" name="seats" class="form-control" id="seats" required min="1" max="1000" placeholder=" ">
+          <label for="seats">Number of Seats</label>
+        </div>
+      </div>
+      
+      <div class="col-12 submit-btn-container">
+        <button type="submit" class="btn submit-btn">
+          <i class="fas fa-plus-circle me-2"></i>Add Airplane
+        </button>
+        <a href="{{ url_for('staff_flights') }}" class="btn back-btn">
+          <i class="fas fa-arrow-left me-2"></i>Back to Flights
+        </a>
+      </div>
+    </form>
   </div>
+  
+  <!-- Existing Airplanes Table -->
+  {% if airplanes %}
+  <div class="mt-5 animate-in" style="animation-delay: 0.2s;">
+    <h3 class="mb-3 text-primary">Current Fleet</h3>
+    <div class="table-responsive">
+      <table class="table table-hover airplanes-table">
+        <thead>
+          <tr>
+            <th>Airplane ID</th>
+            <th>Number of Seats</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for airplane in airplanes %}
+          <tr>
+            <td>{{ airplane.Airplane_ID }}</td>
+            <td>{{ airplane.Number_Seats }}</td>
+            <td>
+              <span class="badge bg-success">Active</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
 
-  <div class="col-md-6">
-    <label class="form-label">Number of seats</label>
-    <input name="seats" type="number" class="form-control" required>
-  </div>
-
-  <div class="col-12">
-    <button class="btn btn-primary">Add airplane</button>
-  </div>
-</form>
+{% block scripts %}
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Form validation and submission
+    const form = document.getElementById('airplane-form');
+    
+    form.addEventListener('submit', function(event) {
+      const planeId = document.getElementById('plane_id');
+      const seats = document.getElementById('seats');
+      
+      if (!planeId.value.trim()) {
+        event.preventDefault();
+        planeId.classList.add('is-invalid');
+        return;
+      }
+      
+      if (seats.value < 1) {
+        event.preventDefault();
+        seats.classList.add('is-invalid');
+        return;
+      }
+      
+      // Add submission animation if needed
+      // This would normally submit the form
+    });
+    
+    // Input fields validation
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+      input.addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+      });
+    });
+    
+    // Flash message close button
+    const closeButtons = document.querySelectorAll('.close-btn');
+    closeButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        this.parentElement.style.display = 'none';
+      });
+    });
+    
+    // Add some interactivity to the form inputs
+    const animateInputs = document.querySelectorAll('.input-animate input');
+    animateInputs.forEach(input => {
+      // Add floating label effect
+      input.addEventListener('focus', function() {
+        this.parentElement.classList.add('focused');
+      });
+      
+      input.addEventListener('blur', function() {
+        this.parentElement.classList.remove('focused');
+      });
+    });
+    
+    // Seat number visual feedback
+    const seatsInput = document.getElementById('seats');
+    seatsInput.addEventListener('input', function() {
+      const value = parseInt(this.value) || 0;
+      
+      if (value < 1) {
+        this.style.borderColor = '#dc3545';
+      } else if (value < 50) {
+        this.style.borderColor = '#ffc107';
+      } else {
+        this.style.borderColor = '#28a745';
+      }
+    });
+  });
+</script>
 {% endblock %}
