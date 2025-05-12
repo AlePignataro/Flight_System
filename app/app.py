@@ -1184,6 +1184,7 @@ def main() -> None:
     def staff_update_permission():
         """Update permission for a staff member."""
         username = request.form.get("username")
+        print(request.form.get("new_role"))
         new_role = request.form.get("new_role") if request.form.get("new_role") != "None" else "NULL"
         if not username:
             flash("Username is required", "danger")
