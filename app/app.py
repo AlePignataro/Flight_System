@@ -231,7 +231,7 @@ def main() -> None:
                         email=username,
                         password=password,
                         first_name=request.form["first_name"],
-                        middle_name=request.form.get("middle_name"),
+                        middle_name=request.form.get("middle_name") if request.form.get("middle_name") != "" else "NULL",
                         last_name=request.form["last_name"],
                         state=request.form["state"],
                         city=request.form["city"],
@@ -258,7 +258,7 @@ def main() -> None:
                     # Get all values for each field
                     first_name_values = request.form.getlist("first_name")
                     last_name_values = request.form.getlist("last_name")
-                    middle_name_values = request.form.getlist("middle_name")
+                    middle_name_values = request.form.getlist("middle_name") if request.form.getlist("middle_name") != "" else "NULL"
                     dob_values = request.form.getlist("dob")
                     airline_name = request.form.get("airline_name", "").strip()
                     
@@ -267,15 +267,6 @@ def main() -> None:
                     last_name = next((val for val in reversed(last_name_values) if val.strip()), "")
                     middle_name = next((val for val in reversed(middle_name_values) if val.strip()), None)
                     dob = next((val for val in reversed(dob_values) if val.strip()), None)
-                    
-                    # Print debugging info
-                    print("Staff signup processed values:")
-                    print(f"Username: {username}")
-                    print(f"First name: {first_name}")
-                    print(f"Last name: {last_name}")
-                    print(f"Middle name: {middle_name}")
-                    print(f"DoB: {dob}")
-                    print(f"Airline: {airline_name}")
                     
                     # Create the staff with the correct values
                     public_db.create_staff(
