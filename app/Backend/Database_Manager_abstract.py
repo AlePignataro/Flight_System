@@ -8,7 +8,7 @@ from abc import ABC
 
 
 class AbstractDatabaseService(ABC):
-    """Common backend helper for all DB access layers."""
+    """Common backend heler for all DB access layers."""
 
     # ────────────────────────── constructor ──────────────────────────── #
 

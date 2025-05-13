@@ -163,22 +163,37 @@ class PublicDatabaseService(AbstractDatabaseService):
         cur = self._execute_query(sql, params)
         cur.close()
 
-    def create_customer(self, **k):
+    def create_customer(self,**k):
         sql = """
-            INSERT INTO Customer
-                (Email, Password,
-                    First_Name, Middle_Name, Last_Name,
-                    State, City, Building_Name, Zip_Code,
-                    Phone_Number,
-                    Passport_Number, Passport_Country, Passport_Expiration_Date,
-                    DoB)
-            VALUES (%(email)s,
-                    MD5(%(password)s),
-                    %(first_name)s, %(middle_name)s, %(last_name)s,
-                    %(state)s, %(city)s, %(building_name)s, %(zip_code)s,
-                    %(phone)s,
-                    %(passport_no)s, %(passport_country)s, %(passport_exp)s,
-                    %(dob)s)
+        INSERT INTO Customer
+            (Email, Password,
+                First_Name, Middle_Name, Last_Name,
+                State, City, Building_Name, Zip_Code,
+                Phone_Number,
+                Passport_Number, Passport_Country, Passport_Expiration_Date,
+                DoB)
+        VALUES (%(email)s,
+                MD5(%(password)s),
+                %(first_name)s, %(middle_name)s, %(last_name)s,
+                %(state)s, %(city)s, %(building_name)s, %(zip_code)s,
+                %(phone)s,
+                %(passport_no)s, %(passport_country)s, %(passport_exp)s,
+                %(dob)s)
+        """ if "middle_name" in k.keys() else """
+        INSERT INTO Customer
+            (Email, Password,
+                First_Name, Last_Name,
+                State, City, Building_Name, Zip_Code,
+                Phone_Number,
+                Passport_Number, Passport_Country, Passport_Expiration_Date,
+                DoB)
+        VALUES (%(email)s,
+                MD5(%(password)s),
+                %(first_name)s, %(last_name)s,
+                %(state)s, %(city)s, %(building_name)s, %(zip_code)s,
+                %(phone)s,
+                %(passport_no)s, %(passport_country)s, %(passport_exp)s,
+                %(dob)s)
         """
         self._exec(sql, k)
 
@@ -191,18 +206,26 @@ class PublicDatabaseService(AbstractDatabaseService):
                     %(booking_agent_id)s)
         """
         self._exec(sql, k)
-
     def create_staff(self, **k):
-        print("Staff creation parameters:", k)  
         sql = """
-            INSERT INTO Airline_Staff
-                   (Username, Password,
-                    First_Name, Middle_Name, Last_Name,
-                    DoB, Airline, Role)
-            VALUES (%(username)s,
-                    MD5(%(password)s),
-                    %(first_name)s, %(middle_name)s, %(last_name)s,
-                    %(dob)s, %(airline_name)s,
-                    NULL)
+        INSERT INTO Airline_Staff
+                (Username, Password,
+                First_Name, Middle_Name, Last_Name,
+                DoB, Airline, Role)
+        VALUES (%(username)s,
+                MD5(%(password)s),
+                %(first_name)s, %(middle_name)s, %(last_name)s,
+                %(dob)s, %(airline_name)s,
+                NULL)
+        """ if "middle_name" in k.keys() else """
+        INSERT INTO Airline_Staff
+                (Username, Password,
+                First_Name, Last_Name,
+                DoB, Airline, Role)
+        VALUES (%(username)s,
+                MD5(%(password)s),
+                %(first_name)s, %(last_name)s,
+                %(dob)s, %(airline_name)s,
+                NULL)
         """
         self._exec(sql, k)

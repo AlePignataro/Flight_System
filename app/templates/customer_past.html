@@ -125,17 +125,39 @@
 
 <!-- Flights Table -->
 {% if rows %}
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-      {% set rows = rows %}
-      {% include "partials/flight_table.html" %}
-    </div>
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Airline</th>
+          <th>Flight&nbsp;#</th>
+          <th>Departure</th>
+          <th>Arrival</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td>{{ r.Airline }}</td>
+          <td>{{ r.Flight_ID }}</td>
+          <td>
+            <div><strong>{{ r.Departure_Airport }}</strong></div>
+            <div>{{ r.Departure_Date }}</div>
+            <div class="text-muted small">{{ r.Departure_Time }}</div>
+          </td>
+          <td>
+            <div><strong>{{ r.Arrival_Airport }}</strong></div>
+            <div>{{ r.Arrival_Date }}</div>
+            <div class="text-muted small">{{ r.Arrival_Time }}</div>
+          </td>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
   </div>
 {% else %}
-  <div class="alert alert-info text-center my-4 py-4">
-    <i class="bi bi-info-circle me-2"></i>
-    No flights match your filters. Try adjusting your search criteria.
-  </div>
+  <p class="text-muted">No matching flights.</p>
 {% endif %}
 {% endblock %}
 

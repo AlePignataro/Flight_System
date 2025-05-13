@@ -200,8 +200,6 @@ def main() -> None:
     def signup():
         if request.method == "POST":
             # Debug the request data
-            print("Request form data:", request.form)
-            
             role = request.form["role"]
             raw_user = request.form["username"].strip()
             username = raw_user.lower() if role != "staff" else raw_user  # e-mails case-insensitive
@@ -231,7 +229,7 @@ def main() -> None:
                         email=username,
                         password=password,
                         first_name=request.form["first_name"],
-                        middle_name=request.form.get("middle_name") if request.form.get("middle_name") != "" else "NULL",
+                        middle_name=request.form.get("middle_name") if request.form.get("middle_name") != "" else None,
                         last_name=request.form["last_name"],
                         state=request.form["state"],
                         city=request.form["city"],
@@ -258,7 +256,7 @@ def main() -> None:
                     # Get all values for each field
                     first_name_values = request.form.getlist("first_name")
                     last_name_values = request.form.getlist("last_name")
-                    middle_name_values = request.form.getlist("middle_name") if request.form.getlist("middle_name") != "" else "NULL"
+                    middle_name_values = request.form.getlist("middle_name") if request.form.getlist("middle_name") != "" else None
                     dob_values = request.form.getlist("dob")
                     airline_name = request.form.get("airline_name", "").strip()
                     
@@ -284,7 +282,6 @@ def main() -> None:
                 
             except Exception as e:
                 flash(f"Error creating account: {str(e)}", "danger")
-                print(f"Error during signup: {str(e)}")
                 return redirect(url_for("signup"))
 
         # GET  → show blank form (flashes, if any, are rendered by template)
@@ -945,7 +942,6 @@ def main() -> None:
 
         new_status = request.form["status"]  # You can add the new status here
         try:
-            print(new_status)
             staff_db.update_flight_status(airline=airline,flight_id = flight_id, new_status=new_status)  # Call to the function to update the status in the DB
             flash("Flight status updated successfully.", "success")
         except Exception as e:
@@ -1175,7 +1171,6 @@ def main() -> None:
     def staff_update_permission():
         """Update permission for a staff member."""
         username = request.form.get("username")
-        print(request.form.get("new_role"))
         new_role = request.form.get("new_role") if request.form.get("new_role") != "None" else "NULL"
         if not username:
             flash("Username is required", "danger")
