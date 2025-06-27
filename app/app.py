@@ -507,7 +507,7 @@ def main() -> None:
         # 1. Pie chart data (spend by airline)
         spend_air = {}
         for r in rows:
-            spend_air[r["Airline"]] = spend_air.get(r["Airline"], 0) + float(r["Price"])
+            spend_air[r["Airline"]] = spend_air.get(r["Airline"], 0) + float(r["xce"])
         
         pie_labels = list(spend_air.keys())
         pie_values = list(spend_air.values())
